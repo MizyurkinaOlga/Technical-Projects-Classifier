@@ -31,20 +31,6 @@ namespace DecisionTree
             int sizeFormY = 500;
             this.Size = new Size(sizeFormX, sizeFormY);
 
-
-            //this.label1.MinimumSize = new Size(sizeFormX / 10, 0);
-            //this.label1.MaximumSize = new Size(sizeFormX - (sizeFormX / 5), sizeFormY);
-            //this.label1.Location = new Point((sizeFormX - this.label1.Size.Width) / 2, 30);
-
-            //this.label3.MinimumSize = new Size(sizeFormX / 10, 0);
-            //this.label3.MaximumSize = new Size(sizeFormX / 3 * 2, sizeFormY);
-            //this.label3.Location = new Point((sizeFormX - this.label3.Size.Width) / 2, sizeFormY / 20 * 6);
-
-            //this.button1.Location = new Point(sizeFormX - (sizeFormX / 4), (sizeFormY * 2) / 5);
-            //this.label2.Text = "";
-            //this.textBox1.Location = new Point(sizeFormX - (sizeFormX / 4) - this.textBox1.Size.Width - 20, (sizeFormY * 2) / 5);
-            //this.label2.Location = new Point(sizeFormX - (sizeFormX / 4) - this.textBox1.Size.Width - 20, ((sizeFormY * 2) / 5) + 40);
-
         }
 
         private void openFileToolStripMenuItem_Click(object sender, EventArgs e)
@@ -62,9 +48,8 @@ namespace DecisionTree
                 try
                 {
                     var nameFile = openFileDialog1.FileName;
-                    //textBox1.Text = nameFile;
-                    //label2.Text = "Загрузка файла. Подождите...";
-                    //формируем объект для работы с файлом Excel
+
+                    //form an object to work with an Excel file
                     string extension = Path.GetExtension(nameFile);
                     if (extension == ".xls" || extension == ".xlsx")
                     {
@@ -80,50 +65,61 @@ namespace DecisionTree
                         if (table.ShowDialog(this) == DialogResult.OK)
                         {
                             MExcel.Worksheet ExcSheet = ExcelBook.Sheets[worksheets.Count() - table.Selection];
-                            
-                            //определяем в каком диапазоне документа записаны данные
-                            int column = ExcSheet.Cells.SpecialCells(MExcel.XlCellType.xlCellTypeLastCell).Column;
-                            int rows = ExcSheet.Cells.SpecialCells(MExcel.XlCellType.xlCellTypeLastCell).Row;
-                            int firstColoumn = 1, firstRow = 1;
-                            for (int i = 1; i < rows; i++)
+
+                            //determining the range of data storage in a file
+                            Dictionary<int, int> RC = Utilities.RangeOfData(ExcSheet);
+                            int rows = RC.First().Key;
+                            int column = RC.First().Value;
+                            int firstRow = RC.Last().Key;
+                            int firstColumn = RC.Last().Value;
+
+                            //recording in the program memory arrays and matrix from the original data for further work
+                            data = new string[rows, column];
+                            inputs = new string[column];
+                            outputs = new string[rows];
+                            for (int j = 0; j < column; j++)
                             {
-                                bool fl = false;
-                                for (int j = 1; j < column; j++)
-                                {
-                                    if (ExcSheet.Cells[i, j].Value != null)
-                                    {
-                                        firstColoumn = j;
-                                        firstRow = i;
-                                        fl = true;
-                                        break;
-                                    }
-                                }
-                                if (fl) break;
+                                inputs[j] = ExcSheet.Cells[firstRow, j + firstColumn].Text;
                             }
-                            //формируем в памяти программы массивы и матрицы из исходных данных для дальнейшей работы
-                            data = new string[rows - firstRow, column - firstColoumn];
-                            inputs = new string[column - firstColoumn];
-                            outputs = new string[rows - firstRow];
-                            for (int j = 0; j < column - firstColoumn; j++)
+                            for (int i = 0; i < rows; i++)
                             {
-                                inputs[j] = ExcSheet.Cells[firstRow, j + firstColoumn].Text;
-                            }
-                            for (int i = 0; i < rows - firstRow; i++)
-                            {
-                                for (int j = 0; j < column - firstColoumn; j++)
+                                for (int j = 0; j < column; j++)
                                 {
-                                    data[i, j] = ExcSheet.Cells[i + firstRow + 1, j + firstColoumn].Text;
+                                    data[i, j] = ExcSheet.Cells[i + firstRow + 1, j + firstColumn].Text;
                                 }
                             }
-                            for (int i = 0; i < rows - firstRow; i++)
+                            for (int i = 0; i < rows; i++)
                             {
-                                outputs[i] = ExcSheet.Cells[i + firstRow + 1, column].Text;
+                                outputs[i] = ExcSheet.Cells[i + firstRow + 1, column + firstColumn].Text;
                             }
-                            //label2.Text = "Чтение из файла завершено.";
-                            //после чтения закрываем файл и завершаем работу с Excel
                             ExcelBook.Close();
                             ObjExcel.Quit();
 
+                            //difine type of inputs
+                            Dictionary<string, string> typeOfInputs = Utilities.TypeOfInputs(data, inputs);                            
+
+                            for (int j = 0; j < column; j++)
+                            {
+                                if(typeOfInputs[inputs[j]] == "string")
+                                {
+                                    //строим ФП как для ранговых
+                                    string[] attributeValues = new string[rows];
+                                    for (int i=0; i < rows; i++)
+                                    {
+                                        attributeValues[i] = data[i, j];
+                                    }
+                                    Dictionary<string, double> centersFP = Utilities.CentersOfFP(attributeValues);
+                                }
+                                else
+                                {
+                                    //строим ФП каким-нибудь способом для чисел
+                                }
+                            }
+                            //label1.Text = "";
+                            //foreach (var each in typeOfInputs)
+                            //{
+                            //    label1.Text += each.Key + "->" + each.Value + "; ";
+                            //}
                             //НАДО РИСОВАТЬ ГРАФИКИ
                         }
                     }
