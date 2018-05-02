@@ -75,12 +75,22 @@ namespace DecisionTree
                 else
                 {
                     membershipFunction.Add(val, 1);
-                }
-                
+                }                
             }
+
             foreach(var val in membershipFunction.Keys.ToList())
             {
                 membershipFunction[val] = membershipFunction[val] / countVal;
+            }
+            double cPred = 0;
+            double fPred = 0;
+            double fNow = 0;
+            foreach (var val in membershipFunction.Keys.ToList())
+            {
+                fNow = membershipFunction[val];
+                membershipFunction[val] = cPred + (fPred + fNow) / 2;
+                fPred = fNow;
+                cPred = membershipFunction[val];
             }
 
             return membershipFunction;

@@ -108,6 +108,12 @@ namespace DecisionTree
                                     {
                                         attributeValues[i] = data[i, j];
                                     }
+                                    SortRanks ranks = new SortRanks(inputs[j], attributeValues);
+                                    if (ranks.ShowDialog(this) == DialogResult.OK)
+                                    {
+                                        label1.Text = inputs[j];
+                                    }
+                                    //упорядочить значения (причем с формы ручками)
                                     Dictionary<string, double> centersFP = Utilities.CentersOfFP(attributeValues);
                                 }
                                 else

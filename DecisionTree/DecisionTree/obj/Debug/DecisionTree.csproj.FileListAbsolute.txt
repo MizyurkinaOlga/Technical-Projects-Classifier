@@ -16,7 +16,6 @@ C:\Projects\Technical-Projects-Classifier\DecisionTree\DecisionTree\bin\Debug\sv
 C:\Projects\Technical-Projects-Classifier\DecisionTree\DecisionTree\bin\Debug\tr\ZedGraph.resources.dll
 C:\Projects\Technical-Projects-Classifier\DecisionTree\DecisionTree\bin\Debug\zh-cn\ZedGraph.resources.dll
 C:\Projects\Technical-Projects-Classifier\DecisionTree\DecisionTree\bin\Debug\zh-tw\ZedGraph.resources.dll
-C:\Projects\Technical-Projects-Classifier\DecisionTree\DecisionTree\obj\Debug\DecisionTree.csprojResolveAssemblyReference.cache
 C:\Projects\Technical-Projects-Classifier\DecisionTree\DecisionTree\obj\Debug\DecisionTree.Properties.Resources.resources
 C:\Projects\Technical-Projects-Classifier\DecisionTree\DecisionTree\obj\Debug\DecisionTree.csproj.GenerateResource.Cache
 C:\Projects\Technical-Projects-Classifier\DecisionTree\DecisionTree\obj\Debug\DecisionTree.exe
@@ -29,3 +28,4 @@ C:\Projects\Technical-Projects-Classifier\DecisionTree\DecisionTree\bin\Debug\Ac
 C:\Projects\Technical-Projects-Classifier\DecisionTree\DecisionTree\bin\Debug\Accord.IO.xml
 C:\Projects\Technical-Projects-Classifier\DecisionTree\DecisionTree\obj\Debug\DecisionTree.MainForm.resources
 C:\Projects\Technical-Projects-Classifier\DecisionTree\DecisionTree\obj\Debug\DecisionTree.SelectTableSheet.resources
+C:\Projects\Technical-Projects-Classifier\DecisionTree\DecisionTree\obj\Debug\DecisionTree.SortRanks.resources

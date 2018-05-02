@@ -82,6 +82,12 @@
     <Compile Include="SelectTableSheet.Designer.cs">
       <DependentUpon>SelectTableSheet.cs</DependentUpon>
     </Compile>
+    <Compile Include="SortRanks.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SortRanks.Designer.cs">
+      <DependentUpon>SortRanks.cs</DependentUpon>
+    </Compile>
     <Compile Include="Utilities.cs" />
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
@@ -97,6 +103,9 @@
     </Compile>
     <EmbeddedResource Include="SelectTableSheet.resx">
       <DependentUpon>SelectTableSheet.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SortRanks.resx">
+      <DependentUpon>SortRanks.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
