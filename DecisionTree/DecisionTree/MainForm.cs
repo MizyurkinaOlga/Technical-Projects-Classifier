@@ -100,32 +100,37 @@ namespace DecisionTree
 
                             for (int j = 0; j < column; j++)
                             {
-                                if(typeOfInputs[inputs[j]] == "string")
+                                string[] attributeValues = new string[rows];
+                                for (int i = 0; i < rows; i++)
                                 {
-                                    //строим ФП как для ранговых
-                                    string[] attributeValues = new string[rows];
-                                    for (int i=0; i < rows; i++)
-                                    {
-                                        attributeValues[i] = data[i, j];
-                                    }
-                                    SortRanks ranks = new SortRanks(inputs[j], attributeValues);
+                                    attributeValues[i] = data[i, j];
+                                }
+                                if (typeOfInputs[inputs[j]] == "string")
+                                {
+                                    Dictionary<string, int> uniqValues = Utilities.UniqValCount(attributeValues);
+                                    SortRanks ranks = new SortRanks(inputs[j], uniqValues.Keys.ToArray());
                                     if (ranks.ShowDialog(this) == DialogResult.OK)
                                     {
-                                        label1.Text = inputs[j];
+                                        List<string> orderValues = ranks.OrderedValues();
+                                        List<int> tmpOrderCount = new List<int>();
+                                        foreach (var item in orderValues)
+                                        {
+                                            tmpOrderCount.Add(uniqValues[item]);
+                                        }
+                                        uniqValues.Clear();
+                                        for(int k = 0; k < orderValues.Count; k++)
+                                        {
+                                            uniqValues.Add(orderValues[k], tmpOrderCount[k]);
+                                        }
                                     }
-                                    //упорядочить значения (причем с формы ручками)
-                                    Dictionary<string, double> centersFP = Utilities.CentersOfFP(attributeValues);
+                                    Dictionary<string, double> centersFP = Utilities.CentersOfFP(uniqValues, attributeValues.Length);
                                 }
                                 else
                                 {
-                                    //строим ФП каким-нибудь способом для чисел
+
                                 }
                             }
-                            //label1.Text = "";
-                            //foreach (var each in typeOfInputs)
-                            //{
-                            //    label1.Text += each.Key + "->" + each.Value + "; ";
-                            //}
+                            
                             //НАДО РИСОВАТЬ ГРАФИКИ
                         }
                     }

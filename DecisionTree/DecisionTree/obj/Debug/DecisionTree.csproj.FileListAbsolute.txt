@@ -29,3 +29,4 @@ C:\Projects\Technical-Projects-Classifier\DecisionTree\DecisionTree\bin\Debug\Ac
 C:\Projects\Technical-Projects-Classifier\DecisionTree\DecisionTree\obj\Debug\DecisionTree.MainForm.resources
 C:\Projects\Technical-Projects-Classifier\DecisionTree\DecisionTree\obj\Debug\DecisionTree.SelectTableSheet.resources
 C:\Projects\Technical-Projects-Classifier\DecisionTree\DecisionTree\obj\Debug\DecisionTree.SortRanks.resources
+C:\Projects\Technical-Projects-Classifier\DecisionTree\DecisionTree\obj\Debug\DecisionTree.csprojResolveAssemblyReference.cache

@@ -94,24 +94,41 @@ namespace DecisionTree
             //
             int y = 50;
             int x_val = 50;
-            int x_sort = 150;
+            int x_ord = 150;
             int k = 3;
-            Dictionary<string, System.Windows.Forms.Label> labels = new Dictionary<string, System.Windows.Forms.Label>();
+            string[] listOrd = new string[attributeVal.Count];
+            for (int i = 0; i < attributeVal.Count; i++)
+            {
+                listOrd[i] = (i + 1).ToString();
+            }
             foreach (var val in attributeVal)
             {
-                System.Windows.Forms.Label tmp = new System.Windows.Forms.Label();
+                System.Windows.Forms.Label tmp = new System.Windows.Forms.Label();                
                 tmp.AutoSize = true;
                 tmp.Location = new System.Drawing.Point(x_val, y);
                 string nameL = "label" + k;
                 tmp.Name = nameL;
                 //this.label2.Size = new System.Drawing.Size(35, 13);
-                tmp.TabIndex = 1;
+                tmp.TabIndex = 4;
                 tmp.Text = val;
                 labels.Add(nameL, tmp);
-                y += 20;
+
+                System.Windows.Forms.ComboBox ord = new System.Windows.Forms.ComboBox();
+                ord.AutoSize = true;
+                ord.Location = new System.Drawing.Point(x_ord, y);
+                string nameO = "comboBox" + k;
+                ord.Name = nameO;
+                ord.TabIndex = 5;
+                ord.Items.AddRange(listOrd);
+                order.Add(nameO, ord);
+                y += 30;
                 k++;
             }
             foreach (var labName in labels)
+            {
+                this.Controls.Add(labName.Value);
+            }
+            foreach (var labName in order)
             {
                 this.Controls.Add(labName.Value);
             }

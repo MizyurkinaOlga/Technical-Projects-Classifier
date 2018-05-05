@@ -62,25 +62,29 @@ namespace DecisionTree
             ret.Add(firstRow, firstColoumn);
             return ret;
         }
-        public static Dictionary<string, double> CentersOfFP (string[] values)
+        public static Dictionary<string, int> UniqValCount(string[] values)
         {
             int countVal = values.Length;
-            Dictionary<string, double> membershipFunction = new Dictionary<string, double>();
-            foreach(var val in values)
+            Dictionary<string, int> uniqVal = new Dictionary<string, int>();
+            foreach (var val in values)
             {
-                if (membershipFunction.ContainsKey(val))
+                if (uniqVal.ContainsKey(val))
                 {
-                    membershipFunction[val] += 1;
+                    uniqVal[val] += 1;
                 }
                 else
                 {
-                    membershipFunction.Add(val, 1);
-                }                
+                    uniqVal.Add(val, 1);
+                }
             }
-
-            foreach(var val in membershipFunction.Keys.ToList())
+            return uniqVal;
+        }
+        public static Dictionary<string, double> CentersOfFP (Dictionary<string, int> uniqValues, int countValAll)
+        {
+            Dictionary<string, double> membershipFunction = new Dictionary<string, double>();
+            foreach(var val in uniqValues.Keys.ToList())
             {
-                membershipFunction[val] = membershipFunction[val] / countVal;
+                membershipFunction.Add(val, (double) uniqValues[val] / countValAll);
             }
             double cPred = 0;
             double fPred = 0;
@@ -92,7 +96,6 @@ namespace DecisionTree
                 fPred = fNow;
                 cPred = membershipFunction[val];
             }
-
             return membershipFunction;
         }
     }

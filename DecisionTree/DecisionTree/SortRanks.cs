@@ -12,17 +12,14 @@ namespace DecisionTree
 {
     public partial class SortRanks : Form
     {
-        public SortRanks(string attributeName, string[] attributeVal)
+        List<string> orderedValues;
+        Dictionary<string, System.Windows.Forms.Label> labels = new Dictionary<string, System.Windows.Forms.Label>();
+        Dictionary<string, System.Windows.Forms.ComboBox> order = new Dictionary<string, System.Windows.Forms.ComboBox>();
+
+        public SortRanks(string attributeName, string[] uniqVal)
         {
-            List<string> uniqVal = new List<string>();
-            foreach(var val in attributeVal)
-            {
-                if (!uniqVal.Contains(val))
-                {
-                    uniqVal.Add(val);
-                }
-            }
-            InitializeComponent(attributeName, uniqVal);
+            orderedValues = new List<string>();
+            InitializeComponent(attributeName, uniqVal.ToList());
         }
         private void buttonCancel_click(object sender, EventArgs e)
         {
@@ -32,5 +29,25 @@ namespace DecisionTree
         {
 
         }
+        public List<string> OrderedValues()
+        {
+            List<string> retUniqOrder = new List<string>();
+            int k = 0;
+            while (retUniqOrder.Count() < labels.Count())
+            {
+                int count = order.Count();
+                for (int i = 0; i < count; i++)
+                {
+                    
+                    if (order[("comboBox" + (i + 3)).ToString()].SelectedIndex == k)
+                    {
+                        retUniqOrder.Add(labels[("label" + (i + 3)).ToString()].Text);
+                    }
+                }
+                k++;
+            }
+            return retUniqOrder;
+        }
+
     }
 }

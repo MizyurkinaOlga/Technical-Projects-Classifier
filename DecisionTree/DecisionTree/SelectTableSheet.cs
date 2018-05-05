@@ -22,7 +22,6 @@ namespace DecisionTree
             get
             {
                 return this.listBox1.SelectedIndex;
-            //    return this.listBox1.SelectedItem as string;
             }
         }
 
