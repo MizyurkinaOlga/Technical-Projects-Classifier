@@ -18,6 +18,7 @@ namespace DecisionTree
         public string[,] data;
         public string[] inputs;
         public string[] outputs;
+        FileStream memberFunct;
         public MainForm()
         {
             InitializeComponent();
@@ -81,6 +82,7 @@ namespace DecisionTree
                             {
                                 inputs[j] = ExcSheet.Cells[firstRow, j + firstColumn].Text;
                             }
+                            comboBox1.Items.AddRange(inputs);
                             for (int i = 0; i < rows; i++)
                             {
                                 for (int j = 0; j < column; j++)
@@ -92,62 +94,13 @@ namespace DecisionTree
                             {
                                 outputs[i] = ExcSheet.Cells[i + firstRow + 1, column + firstColumn].Text;
                             }
-                            string path = Environment.CurrentDirectory + 
-                                        "\\MembershipFunction\\" + 
+                            string path = Environment.CurrentDirectory +
+                                        "\\MembershipFunction\\" +
                                         ExcSheet.Name + ".txt";
-                            FileStream memberFunct = File.Create(path);
-                            string inFile = "";
+                            memberFunct = File.Create(path);
 
                             ExcelBook.Close();
                             ObjExcel.Quit();
-
-                            //difine type of inputs
-                            Dictionary<string, string> typeOfInputs = Utilities.TypeOfInputs(data, inputs);                            
-
-                            for (int j = 0; j < column; j++)
-                            {
-                                string[] attributeValues = new string[rows];
-                                for (int i = 0; i < rows; i++)
-                                {
-                                    attributeValues[i] = data[i, j];
-                                }
-                                Dictionary<string, double> centersFP = new Dictionary<string, double>();
-                                if (typeOfInputs[inputs[j]] == "string")
-                                {
-                                    Dictionary<string, int> uniqValues = Utilities.UniqValCount(attributeValues);
-                                    SortRanks ranks = new SortRanks(inputs[j], uniqValues.Keys.ToArray());
-                                    if (ranks.ShowDialog(this) == DialogResult.OK)
-                                    {
-                                        List<string> orderValues = ranks.OrderedValues();
-                                        List<int> tmpOrderCount = new List<int>();
-                                        foreach (var item in orderValues)
-                                        {
-                                            tmpOrderCount.Add(uniqValues[item]);
-                                        }
-                                        uniqValues.Clear();
-                                        for(int k = 0; k < orderValues.Count; k++)
-                                        {
-                                            uniqValues.Add(orderValues[k], tmpOrderCount[k]);
-                                        }
-                                    }
-                                    centersFP = Utilities.CentersOfFP(uniqValues, attributeValues.Length);
-                                }
-                                else
-                                {
-
-                                }
-                                inFile += inputs[j] + " = { " + "\r\n";
-                                foreach(var item in centersFP)
-                                {
-                                    inFile += '\u0022' + item.Key + '\u0022' + " : "+ '\u0022' + item.Value.ToString() + '\u0022' + "\r\n";
-                                }
-                                inFile += "};\r\n";
-                                
-                            }
-
-                            //НАДО РИСОВАТЬ ГРАФИКИ
-                            Byte[] info = new UTF8Encoding(true).GetBytes(inFile);
-                            memberFunct.Write(info, 0, info.Length);
                         }
                     }
                 }
@@ -162,6 +115,57 @@ namespace DecisionTree
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            //difine type of inputs
+            Dictionary<string, string> typeOfInputs = Utilities.TypeOfInputs(data, inputs);
+            int column = inputs.Length;
+            int rows = outputs.Length;
+            //тут потом надо сделать не все подряд, а когда выбрали на форме определенный признак
+            int j = comboBox1.SelectedIndex;
+            string[] attributeValues = new string[rows];
+            for (int i = 0; i < rows; i++)
+            {
+                attributeValues[i] = data[i, j];
+            }
+            Dictionary<string, double> centersFP = new Dictionary<string, double>();
+            if (typeOfInputs[inputs[j]] == "string")
+            {
+                Dictionary<string, int> uniqValues = Utilities.UniqValCount(attributeValues);
+                SortRanks ranks = new SortRanks(inputs[j], uniqValues.Keys.ToArray());
+                if (ranks.ShowDialog(this) == DialogResult.OK)
+                {
+                    List<string> orderValues = ranks.OrderedValues();
+                    List<int> tmpOrderCount = new List<int>();
+                    foreach (var item in orderValues)
+                    {
+                        tmpOrderCount.Add(uniqValues[item]);
+                    }
+                    uniqValues.Clear();
+                    for (int k = 0; k < orderValues.Count; k++)
+                    {
+                        uniqValues.Add(orderValues[k], tmpOrderCount[k]);
+                    }
+                }
+                centersFP = Utilities.CentersOfFP(uniqValues, attributeValues.Length);
+            }
+            else
+            {
+
+            }
+            string inFile = "";
+            inFile += inputs[j] + " = { " + "\r\n";
+            foreach (var item in centersFP)
+            {
+                inFile += '\u0022' + item.Key + '\u0022' + " : " + '\u0022' + item.Value.ToString() + '\u0022' + "\r\n";
+            }
+            inFile += "};\r\n\r\n";
+
+            //НАДО РИСОВАТЬ ГРАФИКИ
+            Byte[] info = new UTF8Encoding(true).GetBytes(inFile);
+            memberFunct.Write(info, 0, info.Length);
         }
     } 
 }
