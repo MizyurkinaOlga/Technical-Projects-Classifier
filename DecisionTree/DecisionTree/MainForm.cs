@@ -92,6 +92,12 @@ namespace DecisionTree
                             {
                                 outputs[i] = ExcSheet.Cells[i + firstRow + 1, column + firstColumn].Text;
                             }
+                            string path = Environment.CurrentDirectory + 
+                                        "\\MembershipFunction\\" + 
+                                        ExcSheet.Name + ".txt";
+                            FileStream memberFunct = File.Create(path);
+                            string inFile = "";
+
                             ExcelBook.Close();
                             ObjExcel.Quit();
 
@@ -105,6 +111,7 @@ namespace DecisionTree
                                 {
                                     attributeValues[i] = data[i, j];
                                 }
+                                Dictionary<string, double> centersFP = new Dictionary<string, double>();
                                 if (typeOfInputs[inputs[j]] == "string")
                                 {
                                     Dictionary<string, int> uniqValues = Utilities.UniqValCount(attributeValues);
@@ -123,15 +130,24 @@ namespace DecisionTree
                                             uniqValues.Add(orderValues[k], tmpOrderCount[k]);
                                         }
                                     }
-                                    Dictionary<string, double> centersFP = Utilities.CentersOfFP(uniqValues, attributeValues.Length);
+                                    centersFP = Utilities.CentersOfFP(uniqValues, attributeValues.Length);
                                 }
                                 else
                                 {
 
                                 }
+                                inFile += inputs[j] + " = { " + "\r\n";
+                                foreach(var item in centersFP)
+                                {
+                                    inFile += '\u0022' + item.Key + '\u0022' + " : "+ '\u0022' + item.Value.ToString() + '\u0022' + "\r\n";
+                                }
+                                inFile += "};\r\n";
+                                
                             }
-                            
+
                             //НАДО РИСОВАТЬ ГРАФИКИ
+                            Byte[] info = new UTF8Encoding(true).GetBytes(inFile);
+                            memberFunct.Write(info, 0, info.Length);
                         }
                     }
                 }
