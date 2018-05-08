@@ -78,7 +78,7 @@ namespace DecisionTree
                 }
             }
             return uniqVal;
-        }
+        }        
         public static Dictionary<string, double> CentersOfFP (Dictionary<string, int> uniqValues, int countValAll)
         {
             Dictionary<string, double> membershipFunction = new Dictionary<string, double>();

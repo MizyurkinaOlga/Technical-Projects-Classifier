@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using MExcel = Microsoft.Office.Interop.Excel;
 using System.IO;
 using Accord.IO;
+using ZedGraph;
 
 namespace DecisionTree
 {
@@ -18,7 +19,10 @@ namespace DecisionTree
         public string[,] data;
         public string[] inputs;
         public string[] outputs;
-        FileStream memberFunct;
+        string pathToFileMembFunc;
+        Dictionary<string, string> typeOfInputs;
+
+        Dictionary<string, Dictionary<string, double>> allCentersOfMembFunc;
         public MainForm()
         {
             InitializeComponent();
@@ -94,17 +98,17 @@ namespace DecisionTree
                             {
                                 outputs[i] = ExcSheet.Cells[i + firstRow + 1, column + firstColumn].Text;
                             }
-                            string path = Environment.CurrentDirectory +
+                            pathToFileMembFunc = Environment.CurrentDirectory +
                                         "\\MembershipFunction\\" +
                                         ExcSheet.Name + ".txt";
-                            memberFunct = File.Create(path);
+                            allCentersOfMembFunc = new Dictionary<string, Dictionary<string, double>>();
+                            typeOfInputs = Utilities.TypeOfInputs(data, inputs);
 
                             ExcelBook.Close();
                             ObjExcel.Quit();
                         }
                     }
                 }
-
                 catch (Exception excp)
                 {
                     MessageBox.Show(excp.Message.ToString());
@@ -116,25 +120,20 @@ namespace DecisionTree
         {
             this.Close();
         }
-
-        private void button1_Click(object sender, EventArgs e)
+        private Dictionary<string, double> CentersMembFunc (int attributeIndex, string typeInputs)
         {
-            //difine type of inputs
-            Dictionary<string, string> typeOfInputs = Utilities.TypeOfInputs(data, inputs);
             int column = inputs.Length;
             int rows = outputs.Length;
-            //тут потом надо сделать не все подряд, а когда выбрали на форме определенный признак
-            int j = comboBox1.SelectedIndex;
             string[] attributeValues = new string[rows];
             for (int i = 0; i < rows; i++)
             {
-                attributeValues[i] = data[i, j];
+                attributeValues[i] = data[i, attributeIndex];
             }
             Dictionary<string, double> centersFP = new Dictionary<string, double>();
-            if (typeOfInputs[inputs[j]] == "string")
+            if (typeInputs == "string")
             {
                 Dictionary<string, int> uniqValues = Utilities.UniqValCount(attributeValues);
-                SortRanks ranks = new SortRanks(inputs[j], uniqValues.Keys.ToArray());
+                SortRanks ranks = new SortRanks(inputs[attributeIndex], uniqValues.Keys.ToArray());
                 if (ranks.ShowDialog(this) == DialogResult.OK)
                 {
                     List<string> orderValues = ranks.OrderedValues();
@@ -153,19 +152,99 @@ namespace DecisionTree
             }
             else
             {
-
+                //если числовые данные
             }
+            return centersFP;
+        }
+        private void WriteCentersToFile()
+        {
             string inFile = "";
-            inFile += inputs[j] + " = { " + "\r\n";
-            foreach (var item in centersFP)
+            foreach (var attr in allCentersOfMembFunc)
             {
-                inFile += '\u0022' + item.Key + '\u0022' + " : " + '\u0022' + item.Value.ToString() + '\u0022' + "\r\n";
+                inFile += attr.Key + " = { " + "\r\n";
+                foreach (var item in attr.Value)
+                {
+                    inFile += '\u0022' + item.Key + '\u0022' + " : " + '\u0022' + item.Value.ToString() + '\u0022' + "\r\n";
+                }
+                inFile += "};\r\n\r\n";
             }
-            inFile += "};\r\n\r\n";
+            Byte[] info = new UTF8Encoding(true).GetBytes(inFile);
+            FileStream fileMembFunc = File.Create(pathToFileMembFunc);
+            fileMembFunc.Write(info, 0, info.Length);
+            fileMembFunc.Close();
+        }
+        private void button1_Click(object sender, EventArgs e)
+        {
+            int j = comboBox1.SelectedIndex;
+            if (allCentersOfMembFunc.ContainsKey(inputs[j]))
+            {
+                OverwritingFunction overwrite = new OverwritingFunction(inputs[j]);
+                if (overwrite.ShowDialog(this) == DialogResult.OK)
+                {
+                    allCentersOfMembFunc[inputs[j]] = CentersMembFunc(j, typeOfInputs[inputs[j]]);
+                }
+            }
+            else
+            {
+                allCentersOfMembFunc.Add(inputs[j], CentersMembFunc(j, typeOfInputs[inputs[j]]));
+            }
+            WriteCentersToFile();
+
+            GraphPane panel = zedGraphControl1.GraphPane;
+            panel.Title.Text = inputs[j];
+            panel.XAxis.Title.Text = "Значение аттрибута";
+            panel.YAxis.Title.Text = "Значение ФП";
+            panel.CurveList.Clear();
+
+            List<double> znach = allCentersOfMembFunc[inputs[j]].Values.ToList();
+            HashSet<Color> colorList = new HashSet<Color>();
+            Random color = new Random();
+            int h = 0;
+            while (h < znach.Count)
+            {
+                int r = color.Next() % 2;
+                int g = color.Next() % 2;
+                int b = color.Next() % 2;
+                if (r==b && b==g && g == 1)
+                {
+                    r = 0;
+                }
+                if (colorList.Add(Color.FromArgb(r * 255, g * 255, b * 255)))
+                {
+                    h++;
+                }
+            }
+            for(int i = 0; i < znach.Count; i++)
+            {
+                PointPairList list = new PointPairList();
+                list.Add(-0.1, 0.0);
+                if (i == 0)
+                {
+                    list.Add(0.0, 0.0);
+                }
+                else
+                {
+                    list.Add(znach[i - 1], 0.0);
+                }
+
+                list.Add(znach[i], 1.0);
+                if (i < znach.Count - 1)
+                {
+                    list.Add(znach[i + 1], 0.0);
+                }
+                else
+                {
+                    list.Add(1.0, 0.0);
+                }
+                list.Add(1.1, 0.0);
+                LineItem graph = panel.AddCurve(allCentersOfMembFunc[inputs[j]].Keys.ToList()[i], list,
+                    colorList.ToList()[i], SymbolType.Star);
+            }
+
+            zedGraphControl1.AxisChange();
+            zedGraphControl1.Invalidate();
 
             //НАДО РИСОВАТЬ ГРАФИКИ
-            Byte[] info = new UTF8Encoding(true).GetBytes(inFile);
-            memberFunct.Write(info, 0, info.Length);
         }
     } 
 }

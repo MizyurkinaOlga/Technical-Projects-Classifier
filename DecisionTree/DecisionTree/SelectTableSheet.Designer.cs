@@ -96,6 +96,7 @@
             this.Text = "Выбор таблицы";
             this.ResumeLayout(false);
             this.PerformLayout();
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
 
         }
 

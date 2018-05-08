@@ -89,6 +89,7 @@ namespace DecisionTree
             this.Text = "Сортировка рангов";
             this.ResumeLayout(false);
             this.PerformLayout();
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             //
             //Список значений атрибутов
             //
