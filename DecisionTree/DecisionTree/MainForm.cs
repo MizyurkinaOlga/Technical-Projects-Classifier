@@ -103,6 +103,7 @@ namespace DecisionTree
                                         ExcSheet.Name + ".txt";
                             allCentersOfMembFunc = new Dictionary<string, Dictionary<string, double>>();
                             typeOfInputs = Utilities.TypeOfInputs(data, inputs);
+                            comboBox1.Enabled = true;
 
                             ExcelBook.Close();
                             ObjExcel.Quit();
@@ -120,7 +121,7 @@ namespace DecisionTree
         {
             this.Close();
         }
-        private Dictionary<string, double> CentersMembFunc (int attributeIndex, string typeInputs)
+        private Dictionary<string, double> DefineMethods (int attributeIndex, string typeInput)
         {
             int column = inputs.Length;
             int rows = outputs.Length;
@@ -130,30 +131,54 @@ namespace DecisionTree
                 attributeValues[i] = data[i, attributeIndex];
             }
             Dictionary<string, double> centersFP = new Dictionary<string, double>();
-            if (typeInputs == "string")
+            Dictionary<string, int> uniqValues = Utilities.UniqValCount(attributeValues);//!!!!!
+            DefineRanks ranksForm = new DefineRanks(inputs[attributeIndex]);
+            if (ranksForm.ShowDialog(this) == DialogResult.OK)
             {
-                Dictionary<string, int> uniqValues = Utilities.UniqValCount(attributeValues);
-                SortRanks ranks = new SortRanks(inputs[attributeIndex], uniqValues.Keys.ToArray());
-                if (ranks.ShowDialog(this) == DialogResult.OK)
+                List<string> ranks = ranksForm.Identify();
+
+                int method = comboBox2.SelectedIndex;
+                
+                if (method == 0)//прямой групповой метод
                 {
-                    List<string> orderValues = ranks.OrderedValues();
-                    List<int> tmpOrderCount = new List<int>();
-                    foreach (var item in orderValues)
-                    {
-                        tmpOrderCount.Add(uniqValues[item]);
-                    }
-                    uniqValues.Clear();
-                    for (int k = 0; k < orderValues.Count; k++)
-                    {
-                        uniqValues.Add(orderValues[k], tmpOrderCount[k]);
-                    }
+                    //определение какой X к какому рангу -еще одна форма и переписать UniqValCount
+                    //формирование центров функции (только треугольные будем использовать)
                 }
-                centersFP = Utilities.CentersOfFP(uniqValues, attributeValues.Length);
+                if (method == 1)//статистических данных
+                {
+                    //определение какой X к какому рангу - еще одна форма и переписать UniqValCount
+                    //формирование центров функции (только треугольные будем использовать)
+                }
+                if (method == 2)//равномерное покрытие
+                {
+                    //формирование центров функции (только треугольные будем использовать)
+                }
+                if (method == 3)//случайное покрытие
+                {
+                    //формирование центров функции (только треугольные будем использовать)
+                }
+                if (method == 4)//для лингвистических переменных
+                {
+                    //определение какой X к какому рангу - еще одна форма и переписать UniqValCount
+                    //формирование центров функции (только треугольные будем использовать)
+                }
+                
+
+
+
+                //List<string> orderValues = ranks.OrderedValues();
+                //List<int> tmpOrderCount = new List<int>();
+                //foreach (var item in orderValues)
+                //{
+                //    tmpOrderCount.Add(uniqValues[item]);
+                //}
+                //uniqValues.Clear();
+                //for (int k = 0; k < orderValues.Count; k++)
+                //{
+                //    uniqValues.Add(orderValues[k], tmpOrderCount[k]);
+                //}
             }
-            else
-            {
-                //если числовые данные
-            }
+            centersFP = Utilities.CntrMFLingVar(uniqValues, attributeValues.Length);
             return centersFP;
         }
         private void WriteCentersToFile()
@@ -181,20 +206,23 @@ namespace DecisionTree
                 OverwritingFunction overwrite = new OverwritingFunction(inputs[j]);
                 if (overwrite.ShowDialog(this) == DialogResult.OK)
                 {
-                    allCentersOfMembFunc[inputs[j]] = CentersMembFunc(j, typeOfInputs[inputs[j]]);
+                    allCentersOfMembFunc[inputs[j]] = DefineMethods(j, typeOfInputs[inputs[j]]);
                 }
             }
             else
             {
-                allCentersOfMembFunc.Add(inputs[j], CentersMembFunc(j, typeOfInputs[inputs[j]]));
+                allCentersOfMembFunc.Add(inputs[j], DefineMethods(j, typeOfInputs[inputs[j]]));
             }
+
             WriteCentersToFile();
+
 
             GraphPane panel = zedGraphControl1.GraphPane;
             panel.Title.Text = inputs[j];
             panel.XAxis.Title.Text = "Значение аттрибута";
             panel.YAxis.Title.Text = "Значение ФП";
             panel.CurveList.Clear();
+
 
             List<double> znach = allCentersOfMembFunc[inputs[j]].Values.ToList();
             HashSet<Color> colorList = new HashSet<Color>();
@@ -245,6 +273,18 @@ namespace DecisionTree
             zedGraphControl1.Invalidate();
 
             //НАДО РИСОВАТЬ ГРАФИКИ
+        }
+
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (typeOfInputs[inputs[comboBox1.SelectedIndex]] == "string")
+            {
+                comboBox2.SelectedIndex = comboBox2.Items.Count - 1;
+            }
+            else
+            {
+                comboBox2.Enabled = true;
+            }
         }
     } 
 }

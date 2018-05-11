@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MExcel = Microsoft.Office.Interop.Excel;
+using ZedGraph;
 
 namespace DecisionTree
 {
@@ -79,7 +80,7 @@ namespace DecisionTree
             }
             return uniqVal;
         }        
-        public static Dictionary<string, double> CentersOfFP (Dictionary<string, int> uniqValues, int countValAll)
+        public static Dictionary<string, double> CntrMFLingVar (Dictionary<string, int> uniqValues, int countValAll)
         {
             Dictionary<string, double> membershipFunction = new Dictionary<string, double>();
             foreach(var val in uniqValues.Keys.ToList())
