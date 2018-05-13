@@ -21,8 +21,8 @@ namespace DecisionTree
         public string[] outputs;
         string pathToFileMembFunc;
         Dictionary<string, string> typeOfInputs;
-
-        Dictionary<string, Dictionary<string, double>> allCentersOfMembFunc;
+        Dictionary<string, Dictionary<string, List<double>>> allCentersOfMembFunc;
+        double limitDecision = 0.98;
         public MainForm()
         {
             InitializeComponent();
@@ -105,7 +105,9 @@ namespace DecisionTree
                             pathToFileMembFunc = Environment.CurrentDirectory +
                                         "\\MembershipFunction\\" +
                                         ExcSheet.Name + ".txt";
-                            allCentersOfMembFunc = new Dictionary<string, Dictionary<string, double>>();
+                            //
+                            treeView1.Nodes.Add(new TreeNode (ExcSheet.Name));
+                            allCentersOfMembFunc = new Dictionary<string, Dictionary<string, List<double>>>();
                             typeOfInputs = Utilities.TypeOfInputs(data, inputs);
                             
                             comboBox1.Items.Clear();
@@ -128,7 +130,7 @@ namespace DecisionTree
         {
             this.Close();
         }
-        private Dictionary<string, double> DefineMethods (int attributeIndex, string typeInput)
+        private Dictionary<string, List<double>> DefineMethods (int attributeIndex, string typeInput)
         {
             int column = inputs.Length;
             int rows = outputs.Length;
@@ -137,7 +139,7 @@ namespace DecisionTree
             {
                 attributeValues[i] = data[i, attributeIndex];
             }
-            Dictionary<string, double> centersFP = new Dictionary<string, double>();
+            Dictionary<string, List<double>> centersFP = new Dictionary<string, List<double>>();
             Dictionary<string, int> uniqValues = Utilities.UniqValCount(attributeValues);//!!!!!
             DefineRanks ranksForm = new DefineRanks(inputs[attributeIndex]);
             if (ranksForm.ShowDialog(this) == DialogResult.OK)
@@ -166,11 +168,11 @@ namespace DecisionTree
                 }
                 if (method == 4)//для лингвистических переменных
                 {
+                    //return Utilities.CntrMFLingVar(ranks, attributeValues);
                     //определение какой X к какому рангу - еще одна форма и переписать UniqValCount
                     //формирование центров функции (только треугольные будем использовать)
                 }                
             }
-            centersFP = Utilities.CntrMFLingVar(uniqValues, attributeValues.Length);
             return centersFP;
         }
         private void WriteCentersToFile()
@@ -181,7 +183,7 @@ namespace DecisionTree
                 inFile += attr.Key + " = { " + "\r\n";
                 foreach (var item in attr.Value)
                 {
-                    inFile += '\u0022' + item.Key + '\u0022' + " : " + '\u0022' + item.Value.ToString() + '\u0022' + "\r\n";
+                    inFile += '\u0022' + item.Key + '\u0022' + " : " + '\u0022' + item.Value[1].ToString() + '\u0022' + "\r\n";
                 }
                 inFile += "};\r\n\r\n";
             }
@@ -189,6 +191,27 @@ namespace DecisionTree
             FileStream fileMembFunc = File.Create(pathToFileMembFunc);
             fileMembFunc.Write(info, 0, info.Length);
             fileMembFunc.Close();
+        }
+        private List<Color> GetColor(int countColor)
+        {
+            HashSet<Color> colorList = new HashSet<Color>();
+            Random color = new Random();
+            int h = 0;
+            while (h < countColor)
+            {
+                int r = color.Next() % 2;
+                int g = color.Next() % 2;
+                int b = color.Next() % 2;
+                if (r == b && b == g && g == 1)
+                {
+                    r = 0;
+                }
+                if (colorList.Add(Color.FromArgb(r * 255, g * 255, b * 255)))
+                {
+                    h++;
+                }
+            }
+            return colorList.ToList();
         }
         private void button1_Click(object sender, EventArgs e)
         {
@@ -215,47 +238,17 @@ namespace DecisionTree
             panel.CurveList.Clear();
 
 
-            List<double> znach = allCentersOfMembFunc[inputs[j]].Values.ToList();
-            HashSet<Color> colorList = new HashSet<Color>();
-            Random color = new Random();
-            int h = 0;
-            while (h < znach.Count)
-            {
-                int r = color.Next() % 2;
-                int g = color.Next() % 2;
-                int b = color.Next() % 2;
-                if (r==b && b==g && g == 1)
-                {
-                    r = 0;
-                }
-                if (colorList.Add(Color.FromArgb(r * 255, g * 255, b * 255)))
-                {
-                    h++;
-                }
-            }
+            List<List<double>> znach = allCentersOfMembFunc[inputs[j]].Values.ToList();
+            List<Color> colorList = GetColor(znach.Count);
             for(int i = 0; i < znach.Count; i++)
             {
                 PointPairList list = new PointPairList();
-                list.Add(znach.Min() - 0.1, 0.0);
-                if (i == 0)
-                {
-                    list.Add(znach.Min(), 0.0);
-                }
-                else
-                {
-                    list.Add(znach[i - 1], 0.0);
-                }
-
-                list.Add(znach[i], 1.0);
-                if (i < znach.Count - 1)
-                {
-                    list.Add(znach[i + 1], 0.0);
-                }
-                else
-                {
-                    list.Add(znach.Max(), 0.0);
-                }
-                list.Add(znach.Max() + 0.1, 0.0);
+                list.Add(znach[i][0] - 0.1, 0.0);
+                list.Add(znach[i][0], 0.0);
+                list.Add(znach[i][1], 1.0);
+                list.Add(znach[i][2], 0.0);
+                list.Add(znach[i][2] + 0.1, 0.0);
+                
                 LineItem graph = panel.AddCurve(allCentersOfMembFunc[inputs[j]].Keys.ToList()[i], list,
                     colorList.ToList()[i], SymbolType.Star);
             }
@@ -276,6 +269,47 @@ namespace DecisionTree
             {
                 comboBox2.Enabled = true;
             }
+        }
+
+        private void tabControl1_Selected(object sender, TabControlEventArgs e)
+        {
+            label3.Text = "функции принадлежности построены для " + allCentersOfMembFunc.Count() + " атрибутов";
+            if (allCentersOfMembFunc.Count() < inputs.Length)
+            {
+                for (int j = 0; j < inputs.Length; j++)
+                {
+                    if (!allCentersOfMembFunc.ContainsKey(inputs[j]))
+                    {
+                        allCentersOfMembFunc.Add(inputs[j], DefineMethods(j, typeOfInputs[inputs[j]]));
+                    }
+                    label3.Text = "функции принадлежности построены для " + allCentersOfMembFunc.Count() + " атрибутов";
+                }
+                WriteCentersToFile();
+            }
+        }
+
+        private void btnBuildTree_Click(object sender, EventArgs e)
+        {
+
+            List<double> percent = new List<double>();
+            percent.Add(0.23);
+            percent.Add(0.56);
+            percent.Add(0.78);
+            percent.Add(1.00);
+
+            Bitmap pic = Utilities.CreatePicturePercent(GetColor(percent.Count), percent);
+            ImageList tmp = new ImageList();
+            tmp.Images.Add(pic);
+            treeView1.ImageList = tmp;
+
+            foreach (var item in allCentersOfMembFunc.Keys)
+            {
+                TreeNode nd = new TreeNode(item);
+                nd.ImageIndex = 0;
+                nd.SelectedImageIndex = 0;
+                treeView1.Nodes[0].Nodes.Add(nd);
+            }            
+            treeView1.Update();
         }
     } 
 }

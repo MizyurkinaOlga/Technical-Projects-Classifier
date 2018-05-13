@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MExcel = Microsoft.Office.Interop.Excel;
 using ZedGraph;
+using System.Drawing;
 
 namespace DecisionTree
 {
@@ -95,28 +96,31 @@ namespace DecisionTree
             }
             return uniqVal;
         }        
-        public static Dictionary<string, double> CntrMFLingVar (Dictionary<string, int> uniqValues, int countValAll)
+        //public static Dictionary<string, List<double>> CntrMFLingVar (Dictionary<string, int> uniqValues, int countValAll)
+        //{
+        //    Dictionary<string, List<double>> membershipFunction = new Dictionary<string, List<double>>();
+
+        //    foreach(var val in uniqValues.Keys.ToList())
+        //    {
+        //        List<double> tmp = new List<double>();
+        //        tmp.Add((double)uniqValues[val] / countValAll);
+        //        membershipFunction.Add(val, tmp);
+        //    }
+        //    double cPred = 0;
+        //    double fPred = 0;
+        //    double fNow = 0;
+        //    foreach (var val in membershipFunction.Keys.ToList())
+        //    {
+        //        fNow = membershipFunction[val];
+        //        membershipFunction[val] = cPred + (fPred + fNow) / 2;
+        //        fPred = fNow;
+        //        cPred = membershipFunction[val];
+        //    }
+        //    return membershipFunction;
+        //}
+        public static Dictionary<string, List<double>> CntrMFUniCover (List<string> ranks, string[] values)
         {
-            Dictionary<string, double> membershipFunction = new Dictionary<string, double>();
-            foreach(var val in uniqValues.Keys.ToList())
-            {
-                membershipFunction.Add(val, (double) uniqValues[val] / countValAll);
-            }
-            double cPred = 0;
-            double fPred = 0;
-            double fNow = 0;
-            foreach (var val in membershipFunction.Keys.ToList())
-            {
-                fNow = membershipFunction[val];
-                membershipFunction[val] = cPred + (fPred + fNow) / 2;
-                fPred = fNow;
-                cPred = membershipFunction[val];
-            }
-            return membershipFunction;
-        }
-        public static Dictionary<string, double> CntrMFUniCover (List<string> ranks, string[] values)
-        {
-            Dictionary<string, double> centers = new Dictionary<string, double>();
+            Dictionary<string, List<double>> centers = new Dictionary<string, List<double>>();
 
             List<double> valDouble = new List<double>();
             foreach(string item in values)
@@ -128,9 +132,53 @@ namespace DecisionTree
             double delta = (max - min) / (ranks.Count - 1);
             for (int j = 1; j <= ranks.Count; j++)
             {
-                centers.Add(ranks[j-1], min + (j - 1) * delta);
+                List<double> cntr = new List<double>();
+                if (j == 1)
+                {
+                    cntr.Add(min);
+                }
+                else
+                {
+                    cntr.Add(min + (j - 2) * delta);
+                }
+                cntr.Add(min + (j - 1) * delta);
+                if (j == ranks.Count)
+                {
+                    cntr.Add(max);
+                }
+                else
+                {
+                    cntr.Add(min + (j) * delta);
+                }
+                centers.Add(ranks[j - 1], cntr);
+
             }
             return centers;
+        }
+        public static Bitmap CreatePicturePercent (List<Color> colors, List<double> percent)
+        {
+            int width = 50;
+            int height = 10;
+            List<int> pxls = new List<int>();
+            foreach(var item in percent)
+            {
+                pxls.Add((int) (item * width));
+            }
+            Bitmap img = new Bitmap(width, height);
+            int countBorder = percent.Count();
+            for (int i = 0, j = 0; i < countBorder; i++)
+            {
+                for (; j < pxls[i]; j++)
+                {
+                    for (int k = 0; k < height; k++)
+                    {
+                        img.SetPixel(j, k, colors[i]);
+                    }
+                }
+            }
+            img.Save(Environment.CurrentDirectory +
+                                        "\\Pictures\\pic.jpg");
+            return img;
         }
     }
 }
