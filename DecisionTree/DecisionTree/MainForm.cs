@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using MExcel = Microsoft.Office.Interop.Excel;
 using System.IO;
 using Accord.IO;
+using ZedGraph;
 
 namespace DecisionTree
 {
@@ -18,6 +19,10 @@ namespace DecisionTree
         public string[,] data;
         public string[] inputs;
         public string[] outputs;
+        string pathToFileMembFunc;
+        Dictionary<string, string> typeOfInputs;
+        Dictionary<string, Dictionary<string, List<double>>> allCentersOfMembFunc;
+        double limitDecision = 0.98;
         public MainForm()
         {
             InitializeComponent();
@@ -48,7 +53,10 @@ namespace DecisionTree
                 try
                 {
                     var nameFile = openFileDialog1.FileName;
-
+                    comboBox1.Enabled = false;
+                    comboBox2.Enabled = false;
+                    comboBox1.Text = "Выберите атрибут...";
+                    comboBox2.Text = "Выберите метод...";
                     //form an object to work with an Excel file
                     string extension = Path.GetExtension(nameFile);
                     if (extension == ".xls" || extension == ".xlsx")
@@ -64,6 +72,7 @@ namespace DecisionTree
                         SelectTableSheet table = new SelectTableSheet(worksheets.ToArray());
                         if (table.ShowDialog(this) == DialogResult.OK)
                         {
+
                             MExcel.Worksheet ExcSheet = ExcelBook.Sheets[worksheets.Count() - table.Selection];
 
                             //determining the range of data storage in a file
@@ -81,6 +90,7 @@ namespace DecisionTree
                             {
                                 inputs[j] = ExcSheet.Cells[firstRow, j + firstColumn].Text;
                             }
+                            
                             for (int i = 0; i < rows; i++)
                             {
                                 for (int j = 0; j < column; j++)
@@ -92,50 +102,23 @@ namespace DecisionTree
                             {
                                 outputs[i] = ExcSheet.Cells[i + firstRow + 1, column + firstColumn].Text;
                             }
+                            pathToFileMembFunc = Environment.CurrentDirectory +
+                                        "\\MembershipFunction\\" +
+                                        ExcSheet.Name + ".txt";
+                            //
+                            treeView1.Nodes.Add(new TreeNode (ExcSheet.Name));
+                            allCentersOfMembFunc = new Dictionary<string, Dictionary<string, List<double>>>();
+                            typeOfInputs = Utilities.TypeOfInputs(data, inputs);
+                            
+                            comboBox1.Items.Clear();
+                            comboBox1.Items.AddRange(inputs);
+                            comboBox1.Enabled = true;
+
                             ExcelBook.Close();
                             ObjExcel.Quit();
-
-                            //difine type of inputs
-                            Dictionary<string, string> typeOfInputs = Utilities.TypeOfInputs(data, inputs);                            
-
-                            for (int j = 0; j < column; j++)
-                            {
-                                string[] attributeValues = new string[rows];
-                                for (int i = 0; i < rows; i++)
-                                {
-                                    attributeValues[i] = data[i, j];
-                                }
-                                if (typeOfInputs[inputs[j]] == "string")
-                                {
-                                    Dictionary<string, int> uniqValues = Utilities.UniqValCount(attributeValues);
-                                    SortRanks ranks = new SortRanks(inputs[j], uniqValues.Keys.ToArray());
-                                    if (ranks.ShowDialog(this) == DialogResult.OK)
-                                    {
-                                        List<string> orderValues = ranks.OrderedValues();
-                                        List<int> tmpOrderCount = new List<int>();
-                                        foreach (var item in orderValues)
-                                        {
-                                            tmpOrderCount.Add(uniqValues[item]);
-                                        }
-                                        uniqValues.Clear();
-                                        for(int k = 0; k < orderValues.Count; k++)
-                                        {
-                                            uniqValues.Add(orderValues[k], tmpOrderCount[k]);
-                                        }
-                                    }
-                                    Dictionary<string, double> centersFP = Utilities.CentersOfFP(uniqValues, attributeValues.Length);
-                                }
-                                else
-                                {
-
-                                }
-                            }
-                            
-                            //НАДО РИСОВАТЬ ГРАФИКИ
                         }
                     }
                 }
-
                 catch (Exception excp)
                 {
                     MessageBox.Show(excp.Message.ToString());
@@ -146,6 +129,187 @@ namespace DecisionTree
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+        private Dictionary<string, List<double>> DefineMethods (int attributeIndex, string typeInput)
+        {
+            int column = inputs.Length;
+            int rows = outputs.Length;
+            string[] attributeValues = new string[rows];
+            for (int i = 0; i < rows; i++)
+            {
+                attributeValues[i] = data[i, attributeIndex];
+            }
+            Dictionary<string, List<double>> centersFP = new Dictionary<string, List<double>>();
+            Dictionary<string, int> uniqValues = Utilities.UniqValCount(attributeValues);//!!!!!
+            DefineRanks ranksForm = new DefineRanks(inputs[attributeIndex]);
+            if (ranksForm.ShowDialog(this) == DialogResult.OK)
+            {
+                List<string> ranks = ranksForm.Identify();
+
+                int method = comboBox2.SelectedIndex;
+                
+                if (method == 0)//прямой групповой метод
+                {
+                    //определение какой X к какому рангу -еще одна форма и переписать UniqValCount
+                    //формирование центров функции (только треугольные будем использовать)
+                }
+                if (method == 1)//статистических данных
+                {
+                    //определение какой X к какому рангу - еще одна форма и переписать UniqValCount
+                    //формирование центров функции (только треугольные будем использовать)
+                }
+                if (method == 2)//равномерное покрытие
+                {
+                    return Utilities.CntrMFUniCover(ranks, attributeValues);
+                }
+                if (method == 3)//случайное покрытие
+                {
+                    //формирование центров функции (только треугольные будем использовать)
+                }
+                if (method == 4)//для лингвистических переменных
+                {
+                    //return Utilities.CntrMFLingVar(ranks, attributeValues);
+                    //определение какой X к какому рангу - еще одна форма и переписать UniqValCount
+                    //формирование центров функции (только треугольные будем использовать)
+                }                
+            }
+            return centersFP;
+        }
+        private void WriteCentersToFile()
+        {
+            string inFile = "";
+            foreach (var attr in allCentersOfMembFunc)
+            {
+                inFile += attr.Key + " = { " + "\r\n";
+                foreach (var item in attr.Value)
+                {
+                    inFile += '\u0022' + item.Key + '\u0022' + " : " + '\u0022' + item.Value[1].ToString() + '\u0022' + "\r\n";
+                }
+                inFile += "};\r\n\r\n";
+            }
+            Byte[] info = new UTF8Encoding(true).GetBytes(inFile);
+            FileStream fileMembFunc = File.Create(pathToFileMembFunc);
+            fileMembFunc.Write(info, 0, info.Length);
+            fileMembFunc.Close();
+        }
+        private List<Color> GetColor(int countColor)
+        {
+            HashSet<Color> colorList = new HashSet<Color>();
+            Random color = new Random();
+            int h = 0;
+            while (h < countColor)
+            {
+                int r = color.Next() % 2;
+                int g = color.Next() % 2;
+                int b = color.Next() % 2;
+                if (r == b && b == g && g == 1)
+                {
+                    r = 0;
+                }
+                if (colorList.Add(Color.FromArgb(r * 255, g * 255, b * 255)))
+                {
+                    h++;
+                }
+            }
+            return colorList.ToList();
+        }
+        private void button1_Click(object sender, EventArgs e)
+        {
+            int j = inputs.ToList().FindIndex(x => x == comboBox1.SelectedItem.ToString());
+            if (allCentersOfMembFunc.ContainsKey(inputs[j]))
+            {
+                OverwritingFunction overwrite = new OverwritingFunction(inputs[j]);
+                if (overwrite.ShowDialog(this) == DialogResult.OK)
+                {
+                    allCentersOfMembFunc[inputs[j]] = DefineMethods(j, typeOfInputs[inputs[j]]);
+                }
+            }
+            else
+            {
+                allCentersOfMembFunc.Add(inputs[j], DefineMethods(j, typeOfInputs[inputs[j]]));
+            }
+
+            WriteCentersToFile();
+
+            GraphPane panel = zedGraphControl1.GraphPane;
+            panel.Title.Text = inputs[j];
+            panel.XAxis.Title.Text = "Значение аттрибута";
+            panel.YAxis.Title.Text = "Значение ФП";
+            panel.CurveList.Clear();
+
+
+            List<List<double>> znach = allCentersOfMembFunc[inputs[j]].Values.ToList();
+            List<Color> colorList = GetColor(znach.Count);
+            for(int i = 0; i < znach.Count; i++)
+            {
+                PointPairList list = new PointPairList();
+                list.Add(znach[i][0] - 0.1, 0.0);
+                list.Add(znach[i][0], 0.0);
+                list.Add(znach[i][1], 1.0);
+                list.Add(znach[i][2], 0.0);
+                list.Add(znach[i][2] + 0.1, 0.0);
+                
+                LineItem graph = panel.AddCurve(allCentersOfMembFunc[inputs[j]].Keys.ToList()[i], list,
+                    colorList.ToList()[i], SymbolType.Star);
+            }
+
+            zedGraphControl1.AxisChange();
+            zedGraphControl1.Invalidate();
+        }
+
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            comboBox2.Enabled = false;
+            comboBox2.Text = "Выберите метод...";
+            if (typeOfInputs[comboBox1.SelectedItem.ToString()] == "string")
+            {
+                comboBox2.SelectedIndex = comboBox2.Items.Count - 1;
+            }
+            else
+            {
+                comboBox2.Enabled = true;
+            }
+        }
+
+        private void tabControl1_Selected(object sender, TabControlEventArgs e)
+        {
+            label3.Text = "функции принадлежности построены для " + allCentersOfMembFunc.Count() + " атрибутов";
+            if (allCentersOfMembFunc.Count() < inputs.Length)
+            {
+                for (int j = 0; j < inputs.Length; j++)
+                {
+                    if (!allCentersOfMembFunc.ContainsKey(inputs[j]))
+                    {
+                        allCentersOfMembFunc.Add(inputs[j], DefineMethods(j, typeOfInputs[inputs[j]]));
+                    }
+                    label3.Text = "функции принадлежности построены для " + allCentersOfMembFunc.Count() + " атрибутов";
+                }
+                WriteCentersToFile();
+            }
+        }
+
+        private void btnBuildTree_Click(object sender, EventArgs e)
+        {
+
+            List<double> percent = new List<double>();
+            percent.Add(0.23);
+            percent.Add(0.56);
+            percent.Add(0.78);
+            percent.Add(1.00);
+
+            Bitmap pic = Utilities.CreatePicturePercent(GetColor(percent.Count), percent);
+            ImageList tmp = new ImageList();
+            tmp.Images.Add(pic);
+            treeView1.ImageList = tmp;
+
+            foreach (var item in allCentersOfMembFunc.Keys)
+            {
+                TreeNode nd = new TreeNode(item);
+                nd.ImageIndex = 0;
+                nd.SelectedImageIndex = 0;
+                treeView1.Nodes[0].Nodes.Add(nd);
+            }            
+            treeView1.Update();
         }
     } 
 }
