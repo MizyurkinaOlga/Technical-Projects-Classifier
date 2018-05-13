@@ -53,7 +53,10 @@ namespace DecisionTree
                 try
                 {
                     var nameFile = openFileDialog1.FileName;
-
+                    comboBox1.Enabled = false;
+                    comboBox2.Enabled = false;
+                    comboBox1.Text = "Выберите атрибут...";
+                    comboBox2.Text = "Выберите метод...";
                     //form an object to work with an Excel file
                     string extension = Path.GetExtension(nameFile);
                     if (extension == ".xls" || extension == ".xlsx")
@@ -69,6 +72,7 @@ namespace DecisionTree
                         SelectTableSheet table = new SelectTableSheet(worksheets.ToArray());
                         if (table.ShowDialog(this) == DialogResult.OK)
                         {
+
                             MExcel.Worksheet ExcSheet = ExcelBook.Sheets[worksheets.Count() - table.Selection];
 
                             //determining the range of data storage in a file
@@ -86,7 +90,7 @@ namespace DecisionTree
                             {
                                 inputs[j] = ExcSheet.Cells[firstRow, j + firstColumn].Text;
                             }
-                            comboBox1.Items.AddRange(inputs);
+                            
                             for (int i = 0; i < rows; i++)
                             {
                                 for (int j = 0; j < column; j++)
@@ -103,6 +107,9 @@ namespace DecisionTree
                                         ExcSheet.Name + ".txt";
                             allCentersOfMembFunc = new Dictionary<string, Dictionary<string, double>>();
                             typeOfInputs = Utilities.TypeOfInputs(data, inputs);
+                            
+                            comboBox1.Items.Clear();
+                            comboBox1.Items.AddRange(inputs);
                             comboBox1.Enabled = true;
 
                             ExcelBook.Close();
@@ -151,7 +158,7 @@ namespace DecisionTree
                 }
                 if (method == 2)//равномерное покрытие
                 {
-                    //формирование центров функции (только треугольные будем использовать)
+                    return Utilities.CntrMFUniCover(ranks, attributeValues);
                 }
                 if (method == 3)//случайное покрытие
                 {
@@ -161,22 +168,7 @@ namespace DecisionTree
                 {
                     //определение какой X к какому рангу - еще одна форма и переписать UniqValCount
                     //формирование центров функции (только треугольные будем использовать)
-                }
-                
-
-
-
-                //List<string> orderValues = ranks.OrderedValues();
-                //List<int> tmpOrderCount = new List<int>();
-                //foreach (var item in orderValues)
-                //{
-                //    tmpOrderCount.Add(uniqValues[item]);
-                //}
-                //uniqValues.Clear();
-                //for (int k = 0; k < orderValues.Count; k++)
-                //{
-                //    uniqValues.Add(orderValues[k], tmpOrderCount[k]);
-                //}
+                }                
             }
             centersFP = Utilities.CntrMFLingVar(uniqValues, attributeValues.Length);
             return centersFP;
@@ -200,7 +192,7 @@ namespace DecisionTree
         }
         private void button1_Click(object sender, EventArgs e)
         {
-            int j = comboBox1.SelectedIndex;
+            int j = inputs.ToList().FindIndex(x => x == comboBox1.SelectedItem.ToString());
             if (allCentersOfMembFunc.ContainsKey(inputs[j]))
             {
                 OverwritingFunction overwrite = new OverwritingFunction(inputs[j]);
@@ -215,7 +207,6 @@ namespace DecisionTree
             }
 
             WriteCentersToFile();
-
 
             GraphPane panel = zedGraphControl1.GraphPane;
             panel.Title.Text = inputs[j];
@@ -245,10 +236,10 @@ namespace DecisionTree
             for(int i = 0; i < znach.Count; i++)
             {
                 PointPairList list = new PointPairList();
-                list.Add(-0.1, 0.0);
+                list.Add(znach.Min() - 0.1, 0.0);
                 if (i == 0)
                 {
-                    list.Add(0.0, 0.0);
+                    list.Add(znach.Min(), 0.0);
                 }
                 else
                 {
@@ -262,22 +253,22 @@ namespace DecisionTree
                 }
                 else
                 {
-                    list.Add(1.0, 0.0);
+                    list.Add(znach.Max(), 0.0);
                 }
-                list.Add(1.1, 0.0);
+                list.Add(znach.Max() + 0.1, 0.0);
                 LineItem graph = panel.AddCurve(allCentersOfMembFunc[inputs[j]].Keys.ToList()[i], list,
                     colorList.ToList()[i], SymbolType.Star);
             }
 
             zedGraphControl1.AxisChange();
             zedGraphControl1.Invalidate();
-
-            //НАДО РИСОВАТЬ ГРАФИКИ
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (typeOfInputs[inputs[comboBox1.SelectedIndex]] == "string")
+            comboBox2.Enabled = false;
+            comboBox2.Text = "Выберите метод...";
+            if (typeOfInputs[comboBox1.SelectedItem.ToString()] == "string")
             {
                 comboBox2.SelectedIndex = comboBox2.Items.Count - 1;
             }

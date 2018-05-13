@@ -16,23 +16,38 @@ namespace DecisionTree
             for (int j = 0; j < inputs.Length; j++)
             {
                 double tmp;
-                bool douBle = true;
-                for (int i = 0; i < data.Length/inputs.Length; i++)
-                {
-                    if (!Double.TryParse(data[i, j], out tmp))
-                    {
-                        douBle = false;
-                        break;
-                    }
-                }
-                if (douBle == false)
+                if (data[0, j].Any(c => char.IsLetter(c)))
                 {
                     typeOfInputs.Add(inputs[j], "string");
                 }
                 else
                 {
-                    typeOfInputs.Add(inputs[j], "double");
-                }
+                    if (data[0,j].Count(c=>c=='.')>1 || data[0, j].Count(c => c == ',') > 1)
+                    {
+                        typeOfInputs.Add(inputs[j], "fuzzySet");
+                        if (data[0, j].Contains("."))
+                        {
+                            int maxI = data.Length / inputs.Length;
+                            for ( int i = 0; i < maxI; i++)
+                            {
+                                data[i, j] = data[i, j].Replace(',', ';');
+                                data[i, j] = data[i, j].Replace('.', ',');
+                            }
+                        }
+                    }
+                    else
+                    {
+                        typeOfInputs.Add(inputs[j], "double");
+                        if (data[0, j].Contains("."))
+                        {
+                            int maxI = data.Length / inputs.Length;
+                            for (int i = 0; i < maxI; i++)
+                            {
+                                data[i, j] = data[i, j].Replace('.', ',');
+                            }
+                        }
+                    }
+                }                
             }
             return typeOfInputs;
         }
@@ -98,6 +113,24 @@ namespace DecisionTree
                 cPred = membershipFunction[val];
             }
             return membershipFunction;
+        }
+        public static Dictionary<string, double> CntrMFUniCover (List<string> ranks, string[] values)
+        {
+            Dictionary<string, double> centers = new Dictionary<string, double>();
+
+            List<double> valDouble = new List<double>();
+            foreach(string item in values)
+            {
+                valDouble.Add(Convert.ToDouble(item));
+            }
+            double min = valDouble.Min();
+            double max = valDouble.Max();
+            double delta = (max - min) / (ranks.Count - 1);
+            for (int j = 1; j <= ranks.Count; j++)
+            {
+                centers.Add(ranks[j-1], min + (j - 1) * delta);
+            }
+            return centers;
         }
     }
 }
