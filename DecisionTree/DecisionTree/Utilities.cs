@@ -11,7 +11,7 @@ namespace DecisionTree
 {
     public static class Utilities
     {
-        public static Dictionary<string,string> TypeOfInputs(string[,] data, string[] inputs)
+        public static Dictionary<string, string> TypeOfInputs(string[,] data, string[] inputs)
         {
             Dictionary<string, string> typeOfInputs = new Dictionary<string, string>();
             for (int j = 0; j < inputs.Length; j++)
@@ -23,13 +23,13 @@ namespace DecisionTree
                 }
                 else
                 {
-                    if (data[0,j].Count(c=>c=='.')>1 || data[0, j].Count(c => c == ',') > 1)
+                    if (data[0, j].Count(c => c == '.') > 1 || data[0, j].Count(c => c == ',') > 1)
                     {
                         typeOfInputs.Add(inputs[j], "fuzzySet");
                         if (data[0, j].Contains("."))
                         {
                             int maxI = data.Length / inputs.Length;
-                            for ( int i = 0; i < maxI; i++)
+                            for (int i = 0; i < maxI; i++)
                             {
                                 data[i, j] = data[i, j].Replace(',', ';');
                                 data[i, j] = data[i, j].Replace('.', ',');
@@ -48,11 +48,11 @@ namespace DecisionTree
                             }
                         }
                     }
-                }                
+                }
             }
             return typeOfInputs;
         }
-        public static Dictionary<int,int> RangeOfData(MExcel.Worksheet ExcSheet)
+        public static Dictionary<int, int> RangeOfData(MExcel.Worksheet ExcSheet)
         {
             int column = ExcSheet.Cells.SpecialCells(MExcel.XlCellType.xlCellTypeLastCell).Column;
             int rows = ExcSheet.Cells.SpecialCells(MExcel.XlCellType.xlCellTypeLastCell).Row;
@@ -81,21 +81,24 @@ namespace DecisionTree
         }
         public static Dictionary<string, int> UniqValCount(string[] values)
         {
+
             int countVal = values.Length;
-            Dictionary<string, int> uniqVal = new Dictionary<string, int>();
+            SortedDictionary<string, int> sortedUniq = new SortedDictionary<string, int>();
             foreach (var val in values)
             {
-                if (uniqVal.ContainsKey(val))
+                if (sortedUniq.ContainsKey(val))
                 {
-                    uniqVal[val] += 1;
+                    sortedUniq[val] += 1;
                 }
                 else
                 {
-                    uniqVal.Add(val, 1);
+                    sortedUniq.Add(val, 1);
                 }
             }
+            Dictionary<string, int> uniqVal = new Dictionary<string, int>(sortedUniq);
+
             return uniqVal;
-        }        
+        }
         //public static Dictionary<string, List<double>> CntrMFLingVar (Dictionary<string, int> uniqValues, int countValAll)
         //{
         //    Dictionary<string, List<double>> membershipFunction = new Dictionary<string, List<double>>();
@@ -118,12 +121,12 @@ namespace DecisionTree
         //    }
         //    return membershipFunction;
         //}
-        public static Dictionary<string, List<double>> CntrMFUniCover (List<string> ranks, string[] values)
+        public static Dictionary<string, List<double>> CntrMFUniCover(List<string> ranks, string[] values)
         {
             Dictionary<string, List<double>> centers = new Dictionary<string, List<double>>();
 
             List<double> valDouble = new List<double>();
-            foreach(string item in values)
+            foreach (string item in values)
             {
                 valDouble.Add(Convert.ToDouble(item));
             }
@@ -155,15 +158,17 @@ namespace DecisionTree
             }
             return centers;
         }
-        public static Bitmap CreatePicturePercent (List<Color> colors, List<double> percent)
+        public static Bitmap CreatePicturePercent(List<Color> colors, List<double> percent)
         {
             int width = 50;
             int height = 10;
             List<int> pxls = new List<int>();
-            foreach(var item in percent)
+            pxls.Add((int)(percent[0] * width));
+            for (int i = 1; i < percent.Count; i++)
             {
-                pxls.Add((int) (item * width));
+                pxls.Add((int)(pxls[i - 1] + (percent[i] * width)));
             }
+            pxls.Add(width);            
             Bitmap img = new Bitmap(width, height);
             int countBorder = percent.Count();
             for (int i = 0, j = 0; i < countBorder; i++)
@@ -175,10 +180,41 @@ namespace DecisionTree
                         img.SetPixel(j, k, colors[i]);
                     }
                 }
-            }
+            }            
             img.Save(Environment.CurrentDirectory +
-                                        "\\Pictures\\pic.jpg");
+                                        "\\Pictures\\" + String.Join(", ", percent.ToArray()) + ".jpg");
             return img;
         }
+        public static double Info(List<double> probability)
+        {
+            double entropy = 0.00;
+            foreach (var item in probability)
+            {
+                entropy -= item * (Math.Log(item) / Math.Log(2));
+            }
+            return entropy;
+        }
+        public static Dictionary<string, double> ProbabilityOfClass(string[] outputs)
+        {
+            Dictionary<string, double> probabilitty = new Dictionary<string, double>();
+            foreach(var cls in outputs)
+            {
+                if (probabilitty.ContainsKey(cls))
+                {
+                    probabilitty[cls] += 1;
+                }
+                else
+                {
+                    probabilitty.Add(cls, 1);
+                }
+            }
+            int countElements = outputs.Length;
+            foreach(var item in probabilitty.Keys.ToList())
+            {
+                probabilitty[item] = probabilitty[item] / countElements;
+            }
+            return probabilitty;
+        }
+            
     }
 }
