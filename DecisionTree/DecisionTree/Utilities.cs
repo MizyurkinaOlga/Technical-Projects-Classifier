@@ -158,8 +158,13 @@ namespace DecisionTree
             }
             return centers;
         }
-        public static Bitmap CreatePicturePercent(List<Color> colors, List<double> percent)
+        public static Bitmap CreatePicturePercent(Dictionary<string,Color> colors, Dictionary<string, double> probability)
         {
+            List<double> percent = new List<double>();
+            foreach (var item in probability)
+            {
+                percent.Add(item.Value);
+            }
             int width = 50;
             int height = 10;
             List<int> pxls = new List<int>();
@@ -177,7 +182,7 @@ namespace DecisionTree
                 {
                     for (int k = 0; k < height; k++)
                     {
-                        img.SetPixel(j, k, colors[i]);
+                        img.SetPixel(j, k, colors.Values.ToList()[i]);
                     }
                 }
             }            
@@ -190,29 +195,32 @@ namespace DecisionTree
             double entropy = 0.00;
             foreach (var item in probability)
             {
-                entropy -= item * (Math.Log(item) / Math.Log(2));
+                if (item > 0)
+                {
+                    entropy -= item * (Math.Log(item) / Math.Log(2));
+                }                
             }
             return entropy;
         }
-        public static Dictionary<string, double> ProbabilityOfClass(string[] outputs)
+        public static Dictionary<string, double> ProbabilityOfClass(List<string> classes, List<int> indexes, string[] outputs)
         {
             Dictionary<string, double> probabilitty = new Dictionary<string, double>();
-            foreach(var cls in outputs)
+            foreach(var cls in classes)
             {
-                if (probabilitty.ContainsKey(cls))
-                {
-                    probabilitty[cls] += 1;
-                }
-                else
-                {
-                    probabilitty.Add(cls, 1);
-                }
+                probabilitty.Add(cls, 0);
             }
-            int countElements = outputs.Length;
-            foreach(var item in probabilitty.Keys.ToList())
+            foreach(var cls in indexes)
             {
-                probabilitty[item] = probabilitty[item] / countElements;
+                probabilitty[outputs[cls]] += 1;                
             }
+            int countElements = indexes.Count;
+            if (countElements > 0)
+            {
+                foreach (var item in probabilitty.Keys.ToList())
+                {
+                    probabilitty[item] = probabilitty[item] / countElements;
+                }
+            }            
             return probabilitty;
         }
             
