@@ -68,6 +68,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DecisionNode.cs" />
     <Compile Include="DefineRanks.cs">
       <SubType>Form</SubType>
     </Compile>

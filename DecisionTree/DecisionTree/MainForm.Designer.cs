@@ -38,13 +38,13 @@
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.treeView1 = new System.Windows.Forms.TreeView();
+            this.btnBuildTree = new System.Windows.Forms.Button();
+            this.label3 = new System.Windows.Forms.Label();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.label3 = new System.Windows.Forms.Label();
-            this.btnBuildTree = new System.Windows.Forms.Button();
-            this.treeView1 = new System.Windows.Forms.TreeView();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -161,6 +161,34 @@
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Дерево решений";
             // 
+            // treeView1
+            // 
+            this.treeView1.BackColor = System.Drawing.SystemColors.GradientInactiveCaption;
+            this.treeView1.Location = new System.Drawing.Point(34, 58);
+            this.treeView1.Name = "treeView1";
+            this.treeView1.ShowNodeToolTips = true;
+            this.treeView1.Size = new System.Drawing.Size(422, 449);
+            this.treeView1.TabIndex = 2;
+            // 
+            // btnBuildTree
+            // 
+            this.btnBuildTree.Location = new System.Drawing.Point(34, 29);
+            this.btnBuildTree.Name = "btnBuildTree";
+            this.btnBuildTree.Size = new System.Drawing.Size(135, 23);
+            this.btnBuildTree.TabIndex = 1;
+            this.btnBuildTree.Text = "Построить дерево";
+            this.btnBuildTree.UseVisualStyleBackColor = true;
+            this.btnBuildTree.Click += new System.EventHandler(this.btnBuildTree_Click);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(31, 12);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(35, 13);
+            this.label3.TabIndex = 0;
+            this.label3.Text = "label3";
+            // 
             // menuStrip1
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -193,34 +221,6 @@
             this.exitToolStripMenuItem.Size = new System.Drawing.Size(153, 22);
             this.exitToolStripMenuItem.Text = "Выход";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(31, 12);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(35, 13);
-            this.label3.TabIndex = 0;
-            this.label3.Text = "label3";
-            // 
-            // btnBuildTree
-            // 
-            this.btnBuildTree.Location = new System.Drawing.Point(34, 29);
-            this.btnBuildTree.Name = "btnBuildTree";
-            this.btnBuildTree.Size = new System.Drawing.Size(135, 23);
-            this.btnBuildTree.TabIndex = 1;
-            this.btnBuildTree.Text = "Построить дерево";
-            this.btnBuildTree.UseVisualStyleBackColor = true;
-            this.btnBuildTree.Click += new System.EventHandler(this.btnBuildTree_Click);
-            // 
-            // treeView1
-            // 
-            this.treeView1.BackColor = System.Drawing.SystemColors.GradientInactiveCaption;
-            this.treeView1.Location = new System.Drawing.Point(34, 58);
-            this.treeView1.Name = "treeView1";
-            this.treeView1.ShowNodeToolTips = true;
-            this.treeView1.Size = new System.Drawing.Size(269, 349);
-            this.treeView1.TabIndex = 2;
             // 
             // MainForm
             // 
