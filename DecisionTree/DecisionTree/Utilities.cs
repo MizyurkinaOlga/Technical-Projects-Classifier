@@ -81,7 +81,6 @@ namespace DecisionTree
         }
         public static Dictionary<string, int> UniqValCount(string[] values)
         {
-
             int countVal = values.Length;
             SortedDictionary<string, int> sortedUniq = new SortedDictionary<string, int>();
             foreach (var val in values)
@@ -98,29 +97,7 @@ namespace DecisionTree
             Dictionary<string, int> uniqVal = new Dictionary<string, int>(sortedUniq);
 
             return uniqVal;
-        }
-        //public static Dictionary<string, List<double>> CntrMFLingVar (Dictionary<string, int> uniqValues, int countValAll)
-        //{
-        //    Dictionary<string, List<double>> membershipFunction = new Dictionary<string, List<double>>();
-
-        //    foreach(var val in uniqValues.Keys.ToList())
-        //    {
-        //        List<double> tmp = new List<double>();
-        //        tmp.Add((double)uniqValues[val] / countValAll);
-        //        membershipFunction.Add(val, tmp);
-        //    }
-        //    double cPred = 0;
-        //    double fPred = 0;
-        //    double fNow = 0;
-        //    foreach (var val in membershipFunction.Keys.ToList())
-        //    {
-        //        fNow = membershipFunction[val];
-        //        membershipFunction[val] = cPred + (fPred + fNow) / 2;
-        //        fPred = fNow;
-        //        cPred = membershipFunction[val];
-        //    }
-        //    return membershipFunction;
-        //}
+        }        
         public static Dictionary<string, List<double>> CntrMFUniCover(List<string> ranks, string[] values)
         {
             Dictionary<string, List<double>> centers = new Dictionary<string, List<double>>();
@@ -157,6 +134,42 @@ namespace DecisionTree
 
             }
             return centers;
+        }
+        public static Dictionary<string, List<double>> CntrMFLingVar(Dictionary<string, List<string>> valToRanks, Dictionary<string,int> uniqVal)
+        {
+            Dictionary<string, List<double>> membershipFunction = new Dictionary<string, List<double>>();
+            Dictionary<string, int> uniqForRanks = new Dictionary<string, int>();
+            int N = 0;//мощность множества
+            int m = 0;//количество рангов
+            foreach(var item in valToRanks)
+            {
+                int rankCount = 0;
+                foreach(var val in item.Value)
+                {
+                    rankCount += uniqVal[val];
+                    N += uniqVal[val];
+                }
+                uniqForRanks.Add(item.Key, rankCount);
+                m++;
+            }
+            Dictionary<string, double> freq = new Dictionary<string, double>();
+            foreach (var item in uniqForRanks)
+            {
+                freq.Add(item.Key, (double)item.Value / N);
+            }
+            List<double> cntrs = new List<double>();
+            cntrs.Add(0.0);
+            cntrs.Add(freq.ElementAt(0).Value / 2);
+            for (int i=1;i< m; i++)
+            {
+                double tmp = cntrs.Last() + (freq.ElementAt(i - 1).Value + freq.ElementAt(i).Value) / 2;
+                cntrs.Add(tmp);
+                membershipFunction.Add(freq.ElementAt(i - 1).Key, new List<double>(cntrs));
+                cntrs.Remove(cntrs.First());
+            }
+            cntrs.Add(1.0);
+            membershipFunction.Add(freq.ElementAt(m - 1).Key, cntrs);            
+            return membershipFunction;
         }
         public static Bitmap CreatePicturePercent(Dictionary<string,Color> colors, Dictionary<string, double> probability)
         {
@@ -223,6 +236,6 @@ namespace DecisionTree
             }            
             return probabilitty;
         }
-            
-    }
+            }
 }
+

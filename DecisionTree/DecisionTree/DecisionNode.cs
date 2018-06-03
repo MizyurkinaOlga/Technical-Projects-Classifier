@@ -14,6 +14,7 @@ namespace DecisionTree
         List<int> listIndexElement;
         double entropy;
         Dictionary<string, double> probabilityClasses;
+
         public DecisionNode(string atr, string rank, List<int> indexes, double info, int imgInd, Dictionary<string, double> probab)
         {
             atribute = atr;

@@ -75,6 +75,12 @@
     <Compile Include="DefineRanks.Designer.cs">
       <DependentUpon>DefineRanks.cs</DependentUpon>
     </Compile>
+    <Compile Include="ExpertReview.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ExpertReview.Designer.cs">
+      <DependentUpon>ExpertReview.cs</DependentUpon>
+    </Compile>
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -98,6 +104,9 @@
     <Compile Include="Utilities.cs" />
     <EmbeddedResource Include="DefineRanks.resx">
       <DependentUpon>DefineRanks.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ExpertReview.resx">
+      <DependentUpon>ExpertReview.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
