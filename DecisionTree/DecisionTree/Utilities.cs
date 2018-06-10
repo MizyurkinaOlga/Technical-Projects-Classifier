@@ -98,14 +98,14 @@ namespace DecisionTree
 
             return uniqVal;
         }        
-        public static Dictionary<string, List<double>> CntrMFUniCover(List<string> ranks, string[] values)
+        public static Dictionary<string, List<double>> CntrMFUniCover(List<string> ranks, double[] values)
         {
             Dictionary<string, List<double>> centers = new Dictionary<string, List<double>>();
 
             List<double> valDouble = new List<double>();
-            foreach (string item in values)
+            foreach (double item in values)
             {
-                valDouble.Add(Convert.ToDouble(item));
+                valDouble.Add(item);
             }
             double min = valDouble.Min();
             double max = valDouble.Max();
@@ -178,8 +178,8 @@ namespace DecisionTree
             {
                 percent.Add(item.Value);
             }
-            int width = 50;
-            int height = 10;
+            int width = 25;
+            int height = 5;
             List<int> pxls = new List<int>();
             pxls.Add((int)(percent[0] * width));
             for (int i = 1; i < percent.Count; i++)
@@ -236,6 +236,91 @@ namespace DecisionTree
             }            
             return probabilitty;
         }
+        public static Dictionary<string, Dictionary<double, double>> DegreeOfMembDouble(Dictionary<string, List<double>> centers, List<double> uniqInputs)
+        {
+            Dictionary<string, Dictionary<double, double>> rankDegreeze = new Dictionary<string, Dictionary<double, double>>();
+            foreach (var rank in centers)
+            {
+                Dictionary<double, double> degreeze = new Dictionary<double, double>();
+                foreach (var uniqZn in uniqInputs)
+                {
+                    if (Convert.ToDouble(uniqZn) < rank.Value[0] || Convert.ToDouble(uniqZn) > rank.Value[2])
+                    {
+                        degreeze.Add(uniqZn, 0.00);
+                    }
+                    else
+                    {
+                        if (Convert.ToDouble(uniqZn) == rank.Value[1])//если равно центру
+                        {
+                            degreeze.Add(uniqZn, 1.00);
+                        }
+                        else
+                        {
+                            if (Convert.ToDouble(uniqZn) < rank.Value[1])
+                            {
+                                degreeze.Add(uniqZn,
+                                    (Convert.ToDouble(uniqZn) - rank.Value[0]) / (rank.Value[1] - rank.Value[0]));
+                            }
+                            else
+                            {
+                                degreeze.Add(uniqZn,
+                                    (rank.Value[2] - Convert.ToDouble(uniqZn)) / (rank.Value[2] - rank.Value[1]));
+                            }
+                        }
+                    }
+                }
+                rankDegreeze.Add(rank.Key, degreeze);
             }
+            return rankDegreeze;
+        }
+        //public static Dictionary<string, Dictionary<string, double>> DegreeOfMembLing(Dictionary<string, List<double>> centers, Dictionary<string, List<string>> valToRanks, Dictionary<string, int> uniqInputs)
+        //{
+        //    Dictionary<string, Dictionary<string, double>> rankDegreeze = new Dictionary<string, Dictionary<string, double>>();
+        //    Dictionary<string, double> valDegreeze = new Dictionary<string, double>();
+        //    foreach (var val in uniqInputs)
+        //    {
+        //        int indCntr = valToRanks.Keys.ToList().IndexOf(valToRanks.FirstOrDefault(x => x.Value.Contains(val.Key)).Key);
+
+        //    }
+        //    return rankDegreeze;
+        //}
+        public static Dictionary<string, double> Confirm (List<string> inputs)
+        {
+            Dictionary<string, double> result = new Dictionary<string, double>();
+            foreach(var item in inputs)
+            {
+                result.Add(item, Convert.ToDouble(item));
+            }
+            return result;
+        }
+        public static List<double> ReflectionOnTheZeroOne (List<double> listString)
+        {
+            List<double> result = new List<double>();
+            double a = listString.Min();
+            double b = listString.Max();
+            foreach(var item in listString)
+            {
+                double tmp = (item - a) / (b - a);
+                result.Add(tmp);
+            }
+            return result;
+        }
+        public static Dictionary<string, Dictionary<double,double>> ReturnToAB (Dictionary<string,Dictionary<double,double>> degr, List<double> uniqVal)
+        {
+            Dictionary<string, Dictionary<double, double>> result = new Dictionary<string, Dictionary<double, double>>();
+            foreach (var item in degr)
+            {
+                int i = 0;
+                Dictionary<double, double> tmp = new Dictionary<double, double>();
+                foreach(var value in item.Value)
+                {
+                    tmp.Add(uniqVal[i], value.Value);
+                    i++;
+                }
+                result.Add(item.Key, tmp);
+            }
+            return result;
+        }
+    }
 }
 

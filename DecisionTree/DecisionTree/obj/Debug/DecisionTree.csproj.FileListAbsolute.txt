@@ -32,3 +32,4 @@ C:\Projects\Technical-Projects-Classifier\DecisionTree\DecisionTree\obj\Debug\De
 C:\Projects\Technical-Projects-Classifier\DecisionTree\DecisionTree\obj\Debug\DecisionTree.DefineRanks.resources
 C:\Projects\Technical-Projects-Classifier\DecisionTree\DecisionTree\obj\Debug\DecisionTree.csprojResolveAssemblyReference.cache
 C:\Projects\Technical-Projects-Classifier\DecisionTree\DecisionTree\obj\Debug\DecisionTree.ExpertReview.resources
+C:\Projects\Technical-Projects-Classifier\DecisionTree\DecisionTree\obj\Debug\DecisionTree.StringToDouble.resources
