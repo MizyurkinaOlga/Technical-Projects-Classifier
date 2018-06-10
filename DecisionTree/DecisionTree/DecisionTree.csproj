@@ -75,6 +75,12 @@
     <Compile Include="DefineRanks.Designer.cs">
       <DependentUpon>DefineRanks.cs</DependentUpon>
     </Compile>
+    <Compile Include="ExpertReview.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ExpertReview.Designer.cs">
+      <DependentUpon>ExpertReview.cs</DependentUpon>
+    </Compile>
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -95,9 +101,18 @@
     <Compile Include="SelectTableSheet.Designer.cs">
       <DependentUpon>SelectTableSheet.cs</DependentUpon>
     </Compile>
+    <Compile Include="StringToDouble.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="StringToDouble.Designer.cs">
+      <DependentUpon>StringToDouble.cs</DependentUpon>
+    </Compile>
     <Compile Include="Utilities.cs" />
     <EmbeddedResource Include="DefineRanks.resx">
       <DependentUpon>DefineRanks.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ExpertReview.resx">
+      <DependentUpon>ExpertReview.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
@@ -116,6 +131,9 @@
     </Compile>
     <EmbeddedResource Include="SelectTableSheet.resx">
       <DependentUpon>SelectTableSheet.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="StringToDouble.resx">
+      <DependentUpon>StringToDouble.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">

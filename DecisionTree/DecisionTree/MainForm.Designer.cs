@@ -38,6 +38,7 @@
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.label4 = new System.Windows.Forms.Label();
             this.treeView1 = new System.Windows.Forms.TreeView();
             this.btnBuildTree = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
@@ -84,10 +85,9 @@
             this.comboBox2.FormattingEnabled = true;
             this.comboBox2.Items.AddRange(new object[] {
             "Прямой групповой",
-            "Метод статистических данных ???",
             "Равномерное покрытие",
             "Случайное покрытие",
-            "Метод для лингвистических переменных"});
+            "Частотный анализ значений"});
             this.comboBox2.Location = new System.Drawing.Point(240, 67);
             this.comboBox2.Name = "comboBox2";
             this.comboBox2.Size = new System.Drawing.Size(189, 21);
@@ -151,6 +151,7 @@
             // tabPage2
             // 
             this.tabPage2.BackColor = System.Drawing.SystemColors.ControlLightLight;
+            this.tabPage2.Controls.Add(this.label4);
             this.tabPage2.Controls.Add(this.treeView1);
             this.tabPage2.Controls.Add(this.btnBuildTree);
             this.tabPage2.Controls.Add(this.label3);
@@ -160,6 +161,15 @@
             this.tabPage2.Size = new System.Drawing.Size(949, 513);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Дерево решений";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(175, 34);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(35, 13);
+            this.label4.TabIndex = 3;
+            this.label4.Text = "label4";
             // 
             // treeView1
             // 
@@ -262,6 +272,7 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TreeView treeView1;
         private System.Windows.Forms.Button btnBuildTree;
+        private System.Windows.Forms.Label label4;
     }
 }
 

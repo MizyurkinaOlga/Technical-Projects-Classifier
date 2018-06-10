@@ -22,12 +22,10 @@ namespace DecisionTree
         string pathToFileMembFunc;
         Dictionary<string, string> typeOfInputs;
         Dictionary<string, Dictionary<string, List<double>>> allCentersOfMembFunc;
-        Dictionary<string, Dictionary<string, int>> allUniqInputs;//атрибут,значение,количество таких
-        Dictionary<string, Dictionary<string, Dictionary<string, double>>> justificationOfFuzzySet;
-        //поиск по атрибут->ранг->значение атрибута->степень принадлежности
-        Dictionary<string, Dictionary<string, List<int>>> fuzzySets;
-        //атрибут->ранг->список индексов из таблицы data
+        Dictionary<string, Dictionary<string, int>> allUniqInputs;
+        Dictionary<string, Dictionary<string, Dictionary<double, double>>> justificationOfFuzzySet;
         Dictionary<string,Color> colorForNodes;
+        Dictionary<string, Dictionary<string, double>> conformityStringToDouble;
         int pictureIndex = 0;
         double limitDecision = 0.98;
         public MainForm()
@@ -80,7 +78,7 @@ namespace DecisionTree
                         if (table.ShowDialog(this) == DialogResult.OK)
                         {
 
-                            MExcel.Worksheet ExcSheet = ExcelBook.Sheets[worksheets.Count() - table.Selection];
+                            MExcel.Worksheet ExcSheet = ExcelBook.Sheets[table.Selection];
 
                             //determining the range of data storage in a file
                             Dictionary<int, int> RC = Utilities.RangeOfData(ExcSheet);
@@ -114,10 +112,11 @@ namespace DecisionTree
                                         ExcSheet.Name + ".txt";
                             //
                             allCentersOfMembFunc = new Dictionary<string, Dictionary<string, List<double>>>();
-                            justificationOfFuzzySet = new Dictionary<string, Dictionary<string, Dictionary<string, double>>>();
+                            justificationOfFuzzySet = new Dictionary<string, Dictionary<string, Dictionary<double, double>>>();
                             allUniqInputs = new Dictionary<string, Dictionary<string, int>>();
                             typeOfInputs = Utilities.TypeOfInputs(data, inputs);
-                            
+                            conformityStringToDouble = new Dictionary<string, Dictionary<string, double>>();
+
                             comboBox1.Items.Clear();
                             comboBox1.Items.AddRange(inputs);
                             comboBox1.Enabled = true;
@@ -141,53 +140,21 @@ namespace DecisionTree
             List<string> cls = cls1.ToList();
             List<Color> colorList = GetColor(cls.Count);
             Dictionary<string, Color> forret = new Dictionary<string, Color>();
-            for(int i = 0; i < cls.Count; i++)
+            for (int i = 0; i < cls.Count; i++)
             {
                 forret.Add(cls[i], colorList[i]);
             }
+            //forret.Add(cls[0], Color.Red);
+            //forret.Add(cls[1], Color.Blue);
+            //forret.Add(cls[2], Color.Green);
             return forret;
         }
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             this.Close();
         }
-        private Dictionary<string,Dictionary<string,double>> DegreeOfMembDouble(Dictionary<string, List<double>> centers, int index)
-        {
-            Dictionary<string, Dictionary<string, double>> rankDegreeze = new Dictionary<string, Dictionary<string, double>>();
-            foreach (var rank in centers)
-            {
-                Dictionary<string, double> degreeze = new Dictionary<string, double>();
-                foreach (var uniqZn in allUniqInputs[inputs[index]])
-                {
-                    if (Convert.ToDouble(uniqZn.Key) < rank.Value[0] || Convert.ToDouble(uniqZn.Key) > rank.Value[2])
-                    {
-                        degreeze.Add(uniqZn.Key, 0.00);
-                    }
-                    else
-                    {
-                        if (Convert.ToDouble(uniqZn.Key) == rank.Value[1])//если равно центру
-                        {
-                            degreeze.Add(uniqZn.Key, 1.00);
-                        }
-                        else
-                        {
-                            if (Convert.ToDouble(uniqZn.Key) < rank.Value[1])
-                            {
-                                degreeze.Add(uniqZn.Key,
-                                    (Convert.ToDouble(uniqZn.Key) - rank.Value[0]) / (rank.Value[1] - rank.Value[0]));
-                            }
-                            else
-                            {
-                                degreeze.Add(uniqZn.Key,
-                                    (rank.Value[2] - Convert.ToDouble(uniqZn.Key)) / (rank.Value[2] - rank.Value[1]));
-                            }
-                        }
-                    }
-                }
-                rankDegreeze.Add(rank.Key, degreeze);
-            }
-            return rankDegreeze;
-        }
+        
+        
         private Dictionary<string, List<double>> DefineMethods (int attributeIndex, string typeInput)
         {
             int column = inputs.Length;
@@ -204,9 +171,20 @@ namespace DecisionTree
             if (ranksForm.ShowDialog(this) == DialogResult.OK)
             {
                 List<string> ranks = ranksForm.Identify();
-
                 int method = comboBox2.SelectedIndex;
-                if (method == 0)//прямой групповой метод
+                if (typeOfInputs[inputs[attributeIndex]] == "string")
+                {
+                    StringToDouble strToDouble = new StringToDouble(uniqValues.Keys.ToList());
+                    if (strToDouble.ShowDialog(this) == DialogResult.OK)
+                    {
+                        conformityStringToDouble.Add(inputs[attributeIndex], strToDouble.Identify());
+                    }
+                }
+                else
+                {
+                    conformityStringToDouble.Add(inputs[attributeIndex], Utilities.Confirm(uniqValues.Keys.ToList()));
+                }
+                if (comboBox2.SelectedItem.ToString()=="Прямой групповой")//прямой групповой метод
                 {
                     //определение какой X к какому рангу -еще одна форма и переписать UniqValCount
                     //формирование центров функции (только треугольные будем использовать)
@@ -216,22 +194,36 @@ namespace DecisionTree
                     //определение какой X к какому рангу - еще одна форма и переписать UniqValCount
                     //формирование центров функции (только треугольные будем использовать)
                 }
-                if (method == 2)//равномерное покрытие
+                if (comboBox2.SelectedItem.ToString() == "Равномерное покрытие")//равномерное покрытие
                 {
-                    centersFP = Utilities.CntrMFUniCover(ranks, attributeValues);
-                    justificationOfFuzzySet.Add(inputs[attributeIndex], DegreeOfMembDouble(centersFP, attributeIndex));
+                    centersFP = Utilities.CntrMFUniCover(ranks, conformityStringToDouble[inputs[attributeIndex]].Values.ToArray());
+                    justificationOfFuzzySet.Add(inputs[attributeIndex],
+                            Utilities.DegreeOfMembDouble(centersFP, conformityStringToDouble[inputs[attributeIndex]].Values.ToList()));
                     return centersFP;
                 }
                 if (method == 3)//случайное покрытие
                 {
                     //формирование центров функции (только треугольные будем использовать)
                 }
-                if (method == 4)//для лингвистических переменных
+                if (comboBox2.SelectedItem.ToString() == "Частотный анализ значений")//для лингвистических переменных
                 {
-                    //return Utilities.CntrMFLingVar(ranks, attributeValues);
+                    Dictionary<string, List<string>> valToRanks;
+                    ExpertReview exprtRev = new ExpertReview(inputs[attributeIndex], ranks, uniqValues);
+                    if (exprtRev.ShowDialog(this) == DialogResult.OK)
+                    {
+                        valToRanks = exprtRev.RetValToRanks();
+                        centersFP = Utilities.CntrMFLingVar(valToRanks, uniqValues);
+                        //Dictionary<string, Dictionary<string, double>> tmpDegre = Utilities.DegreeOfMembLing(centersFP, valToRanks, allUniqInputs[inputs[attributeIndex]]);
+                        List<double> setZeroOne = Utilities.ReflectionOnTheZeroOne(conformityStringToDouble[inputs[attributeIndex]].Values.ToList());
+                        Dictionary<string, Dictionary<double, double>> degr = Utilities.DegreeOfMembDouble(centersFP, setZeroOne);
+                        Dictionary<string, Dictionary<double, double>> forJust = Utilities.ReturnToAB(degr, conformityStringToDouble[inputs[attributeIndex]].Values.ToList());
+                        justificationOfFuzzySet.Add(inputs[attributeIndex], forJust);
+                        int a = 5;
+                    }
+                    //
                     //определение какой X к какому рангу - еще одна форма и переписать UniqValCount
                     //формирование центров функции (только треугольные будем использовать)
-                }                
+                }
             }
             return centersFP;
         }
@@ -303,37 +295,63 @@ namespace DecisionTree
             for(int i = 0; i < znach.Count; i++)
             {
                 PointPairList list = new PointPairList();
-                list.Add(znach[i][0] - 0.1, 0.0);
-                list.Add(znach[i][0], 0.0);
-                list.Add(znach[i][1], 1.0);
-                list.Add(znach[i][2], 0.0);
-                list.Add(znach[i][2] + 0.1, 0.0);
+                if (typeOfInputs[inputs[j]] == "string" && i==0)
+                {
+
+                    list = ListPointONEF(znach, i);
+                }
+                else
+                {
+                    if (typeOfInputs[inputs[j]] == "string" && i == znach.Count - 1)
+                    {
+                        list = ListPointONEL(znach, i);
+                    }
+                    else
+                    {
+                        list = ListPointZERO(znach, i);
+                    }                    
+                }                
                 
                 LineItem graph = panel.AddCurve(allCentersOfMembFunc[inputs[j]].Keys.ToList()[i], list,
-                    colorList.ToList()[i], SymbolType.Star);
+                    colorList[i], SymbolType.Star);
             }
 
             zedGraphControl1.AxisChange();
             zedGraphControl1.Invalidate();
         }
+        private PointPairList ListPointZERO(List<List<double>> znach, int index)
+        {
+            PointPairList list = new PointPairList();
+            list.Add(znach[index][0], 0.0);
+            list.Add(znach[index][1], 1.0);
+            list.Add(znach[index][2], 0.0);
+            return list;
+        }
+        private PointPairList ListPointONEF(List<List<double>> znach, int index)
+        {
+            PointPairList list = new PointPairList();
+            list.Add(znach[index][0], 1.0);
+            list.Add(znach[index][1], 1.0);
+            list.Add(znach[index][2], 0.0);
+            return list;
+        }
+        private PointPairList ListPointONEL(List<List<double>> znach, int index)
+        {
+            PointPairList list = new PointPairList();
+            list.Add(znach[index][0], 0.0);
+            list.Add(znach[index][1], 1.0);
+            list.Add(znach[index][2], 1.0);
 
+            return list;
+        }
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
             comboBox2.Enabled = false;
             comboBox2.Text = "Выберите метод...";
-            if (typeOfInputs[comboBox1.SelectedItem.ToString()] == "string")
-            {
-                comboBox2.SelectedIndex = comboBox2.Items.Count - 1;
-            }
-            else
-            {
-                comboBox2.Enabled = true;
-            }
+            comboBox2.Enabled = true;            
         }
-
         private void tabControl1_Selected(object sender, TabControlEventArgs e)
         {
-            fuzzySets = new Dictionary<string, Dictionary<string, List<int>>>();        
             label3.Text = "функции принадлежности построены для " + allCentersOfMembFunc.Count() + " атрибутов";
             if (allCentersOfMembFunc.Count() < inputs.Length)
             {
@@ -347,6 +365,11 @@ namespace DecisionTree
                 }
                 WriteCentersToFile();
             }
+            label4.Text = "";
+            foreach(var item in colorForNodes)
+            {
+                label4.Text += item.Key + "->" + item.Value.ToString() + "; ";
+            }
             for(int j = 0; j < inputs.Length; j++)
             {
                 Dictionary<string, List<int>> forRanks = new Dictionary<string, List<int>>();
@@ -356,23 +379,28 @@ namespace DecisionTree
                     int p = data.Length / inputs.Length;
                     for (int i = 0; i < p; i++)
                     {
-                        if (justificationOfFuzzySet[inputs[j]][rank][data[i, j]] >= 0.5)
+                        double tmp = conformityStringToDouble[inputs[j]][data[i, j]];
+                        double prob = justificationOfFuzzySet[inputs[j]][rank][tmp];
+                        if (prob >= 0.5)
                         {
                             indexes.Add(i);
                         }
                     }
                     forRanks.Add(rank, indexes);
                 }
-                fuzzySets.Add(inputs[j], forRanks);
             }
         }
-        private void BuildSubTree(DecisionNode rt, Dictionary<string, Dictionary<string, Dictionary<string, double>>> fuzzySets)
+        private void BuildSubTree(DecisionNode rt, Dictionary<string, Dictionary<string, Dictionary<double, double>>> fuzzySets)
         {
             List<DecisionNode> ListNodeXk = new List<DecisionNode>();
             List<double> GainRatio = new List<double>();
+            List<double> Gain = new List<double>();
+            List<double> SplitInfo = new List<double>();
             for (int i = 0; i < fuzzySets.Count; i++)
             {
                 GainRatio.Add(0.0);
+                Gain.Add(0.0);
+                SplitInfo.Add(0.0);
             }
             int k = 0;
             foreach(var atribut in fuzzySets)
@@ -380,56 +408,76 @@ namespace DecisionTree
                 int j = Array.FindIndex(inputs, s => s.Equals(atribut.Key));
                 
                 foreach (var rank in atribut.Value)
-                {
-                    
+                {                    
                     DecisionNode tmp = new DecisionNode(atribut.Key, rank.Key, new List<int>(), 0.0, -1, new Dictionary<string, double>());
                     foreach(var i in rt.ListIndexElements)
                     {
-                        if (rank.Value[data[i, j]] >= 0.5)
+                        double val = conformityStringToDouble[inputs[j]][data[i, j]];
+                        if (rank.Value[val] >= 0.5)
                         {
                             tmp.ListIndexElements.Add(i);
                         }
                     }
                     tmp.ProbabilityClasses = Utilities.ProbabilityOfClass(new HashSet<string>(outputs).ToList(), tmp.ListIndexElements, outputs);
                     tmp.Entropy = Utilities.Info(tmp.ProbabilityClasses.Values.ToList());
-                    GainRatio[k] += (Convert.ToDouble(tmp.ListIndexElements.Count) /
-                                    Convert.ToDouble(rt.ListIndexElements.Count))
+                    Gain[k] += (Convert.ToDouble(tmp.ListIndexElements.Count) /
+                                Convert.ToDouble(rt.ListIndexElements.Count))
                                         * tmp.Entropy;
+                    double fraq = (double) tmp.ListIndexElements.Count / (double) rt.ListIndexElements.Count;
+                    double lg = Math.Log(fraq) / Math.Log(2);
+                    SplitInfo[k] -= fraq * (Math.Log(fraq) / Math.Log(2));
                     ListNodeXk.Add(tmp);
                 }
                 //вычислить энтропию переменной
+                Gain[k] = rt.Entropy - Gain[k];
+                GainRatio[k] = Gain[k] / SplitInfo[k];
                 k++;
             }
-            int Xmax = inputs.ToList().IndexOf(fuzzySets.Keys.ToList()[GainRatio.IndexOf(GainRatio.Min())]);
-            foreach(var nd in ListNodeXk)
+            //проверить что хотя бы в N дочерних больше чем E элементов
+            int N = 2;
+            int E = 2;
+            int elemMoreThenE = 0;
+            foreach(var item in ListNodeXk)
             {
-                if (nd.Atribute == inputs[Xmax])
+                if (item.ListIndexElements.Count > E)
                 {
-                    Bitmap pic = Utilities.CreatePicturePercent(colorForNodes, nd.ProbabilityClasses);
-                    treeView1.ImageList.Images.Add(pic);
-                    nd.ImageIndex = pictureIndex;
-                    pictureIndex++;
-                    rt.Nodes.Add(nd);
+                    elemMoreThenE++;
                 }
             }
-            Dictionary<string, Dictionary<string, Dictionary<string, double>>> newFuzzySet = new Dictionary<string, Dictionary<string, Dictionary<string, double>>>();
-            foreach(var item in fuzzySets)
+            if (elemMoreThenE > N)
             {
-                if (item.Key!= inputs[Xmax])
+                int Xmax = inputs.ToList().IndexOf(fuzzySets.Keys.ToList()[GainRatio.IndexOf(GainRatio.Max())]);
+                foreach (var nd in ListNodeXk)
                 {
-                    newFuzzySet[item.Key]=item.Value;
-                }
-            }
-            if (newFuzzySet.Count > 0)
-            {
-                foreach(DecisionNode curNod in rt.Nodes)
-                {
-                    if (!curNod.ProbabilityClasses.Values.ToList().Contains(1.0))
+                    if (nd.Atribute == inputs[Xmax])
                     {
-                        BuildSubTree(curNod, newFuzzySet);
+                        Bitmap pic = Utilities.CreatePicturePercent(colorForNodes, nd.ProbabilityClasses);
+                        treeView1.ImageList.Images.Add(pic);
+                        nd.ImageIndex = pictureIndex;
+                        pictureIndex++;
+                        rt.Nodes.Add(nd);
+                    }
+                }
+                Dictionary<string, Dictionary<string, Dictionary<double, double>>> newFuzzySet = new Dictionary<string, Dictionary<string, Dictionary<double, double>>>();
+                foreach (var item in fuzzySets)
+                {
+                    if (item.Key != inputs[Xmax])
+                    {
+                        newFuzzySet[item.Key] = item.Value;
+                    }
+                }
+                if (newFuzzySet.Count > 0)
+                {
+                    foreach (DecisionNode curNod in rt.Nodes)
+                    {
+                        if (!curNod.ProbabilityClasses.Values.ToList().Contains(1.0))
+                        {
+                            BuildSubTree(curNod, newFuzzySet);
+                        }
                     }
                 }
             }
+            
         }
         private void btnBuildTree_Click(object sender, EventArgs e)
         {

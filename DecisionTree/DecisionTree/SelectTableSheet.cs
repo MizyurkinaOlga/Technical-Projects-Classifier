@@ -17,11 +17,11 @@ namespace DecisionTree
             InitializeComponent();
             this.listBox1.DataSource = tables;
         }
-        public int Selection
+        public string Selection
         {
             get
             {
-                return this.listBox1.SelectedIndex;
+                return this.listBox1.SelectedItem.ToString();
             }
         }
 
