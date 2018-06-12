@@ -125,6 +125,7 @@ namespace DecisionTree
 
                             ExcelBook.Close();
                             ObjExcel.Quit();
+                            label1.Text = "";
                         }
                     }
                 }
@@ -144,8 +145,8 @@ namespace DecisionTree
             {
                 forret.Add(cls[i], colorList[i]);
             }
-            //forret.Add(cls[0], Color.Red);
-            //forret.Add(cls[1], Color.Blue);
+            //forret.Add(cls[0], Color.Blue);
+            //forret.Add(cls[1], Color.Black);
             //forret.Add(cls[2], Color.Green);
             return forret;
         }
@@ -201,9 +202,13 @@ namespace DecisionTree
                             Utilities.DegreeOfMembDouble(centersFP, conformityStringToDouble[inputs[attributeIndex]].Values.ToList()));
                     return centersFP;
                 }
-                if (method == 3)//случайное покрытие
+                if (comboBox2.SelectedItem.ToString() == "Случайное покрытие")//случайное покрытие
                 {
                     //формирование центров функции (только треугольные будем использовать)
+                    centersFP = Utilities.CntrMFRandomCover(ranks, conformityStringToDouble[inputs[attributeIndex]].Values.ToArray());
+                    justificationOfFuzzySet.Add(inputs[attributeIndex],
+                            Utilities.DegreeOfMembDouble(centersFP, conformityStringToDouble[inputs[attributeIndex]].Values.ToList()));
+                    return centersFP;
                 }
                 if (comboBox2.SelectedItem.ToString() == "Частотный анализ значений")//для лингвистических переменных
                 {
