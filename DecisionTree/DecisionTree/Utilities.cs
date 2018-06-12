@@ -131,7 +131,53 @@ namespace DecisionTree
                     cntr.Add(min + (j) * delta);
                 }
                 centers.Add(ranks[j - 1], cntr);
-
+            }
+            return centers;
+        }
+        public static Dictionary<string, List<double>> CntrMFRandomCover(List<string> ranks, double[] values)
+        {
+            Dictionary<string, List<double>> centers = new Dictionary<string, List<double>>();
+            SortedSet<double> points = new SortedSet<double>();
+            int count = ranks.Count * 3 - 2;
+            Random val = new Random();
+            double min = values.Min();
+            double max = values.Max();
+            while (points.Count < count)
+            {
+                double tmp = val.NextDouble();
+                points.Add(min + (max - min) * tmp);
+            }
+            double[,] tmpCenters = new double[ranks.Count, 3];
+            tmpCenters[0, 0] = min;
+            tmpCenters[ranks.Count - 1, 2] = max;
+            for (int i=0; i < count; i++)
+            {
+                int ost = i % 3;
+                int cel = (int)i / 3;
+                if (ost == 1)
+                {
+                    tmpCenters[cel + 1, 0] = points.ElementAt(i);
+                }
+                else
+                {
+                    if (ost == 0)
+                    {
+                        tmpCenters[cel, 1] = points.ElementAt(i);
+                    }
+                    else
+                    {
+                        tmpCenters[cel, 2] = points.ElementAt(i);
+                    }
+                }
+            }
+            for (int i = 0; i < ranks.Count; i++)
+            {
+                List<double> tmpRes = new List<double>();
+                for (int j = 0; j < 3; j++)
+                {
+                    tmpRes.Add(tmpCenters[i, j]);
+                }
+                centers.Add(ranks[i], tmpRes);
             }
             return centers;
         }
